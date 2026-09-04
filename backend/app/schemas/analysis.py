@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.ai.models import AiSignals
 from app.forensics.models import (
     AuthenticationSummary,
     DomainIntel,
@@ -72,6 +73,7 @@ class AnalysisSummary(BaseModel):
     hop_count: int
     anomaly_count: int
     highest_anomaly_severity: str | None
+    phishing_probability: float | None
     created_at: datetime
 
 
@@ -82,6 +84,7 @@ class AnalysisDetail(AnalysisSummary):
     anomalies: list[AnomalyOut]
     risk: RiskScore
     sender_domain_intel: DomainIntel | None
+    ai_signals: AiSignals
 
 
 class AnalysisListResponse(BaseModel):

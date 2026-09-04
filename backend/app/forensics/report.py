@@ -8,6 +8,7 @@ produces a usable (if low-confidence) report instead of a 500.
 
 from datetime import UTC, datetime
 
+from app.ai.pipeline import analyze_ai_signals
 from app.forensics.anomalies import detect_anomalies
 from app.forensics.auth import extract_authentication
 from app.forensics.geoip import enrich_hops
@@ -25,6 +26,7 @@ def generate_report(
     geoip_city_db_path: str | None = None,
     geoip_asn_db_path: str | None = None,
     enable_network_enrichment: bool = False,
+    trusted_brands: list[str] | None = None,
 ) -> ForensicReport:
     message, meta = parse_email_bytes(raw, filename)
 
@@ -39,7 +41,13 @@ def generate_report(
         anomalies.append(_dkim_expired_anomaly(authentication.dkim_expiry))
 
     sender_domain_intel = _lookup_sender_domain(meta.from_address, enable_network_enrichment)
-    risk = compute_risk_score(authentication, anomalies)
+    ai_signals = analyze_ai_signals(
+        message,
+        meta,
+        trusted_brands=trusted_brands,
+        enable_network_enrichment=enable_network_enrichment,
+    )
+    risk = compute_risk_score(authentication, anomalies, ai_signals)
 
     return ForensicReport(
         filename=filename,
@@ -50,6 +58,7 @@ def generate_report(
         hop_count=len(hops),
         risk=risk,
         sender_domain_intel=sender_domain_intel,
+        ai_signals=ai_signals,
         generated_at=datetime.now(tz=UTC),
     )
 

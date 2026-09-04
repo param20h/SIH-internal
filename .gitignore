@@ -26,6 +26,13 @@ dist/
 data/geoip/*.mmdb
 data/exports/
 
+# ML: downloaded training data and trained model artifacts are large and
+# regenerable -- see ml/README.md to reproduce. Trained models land in
+# data/models/ (shared with the backend container), not committed either.
+ml/data/raw/
+ml/data/prepared/
+data/models/
+
 # Editors
 .vscode/
 .idea/

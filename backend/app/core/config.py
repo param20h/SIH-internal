@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     geolite2_city_db_path: str = "/data/geoip/GeoLite2-City.mmdb"
     geolite2_asn_db_path: str = "/data/geoip/GeoLite2-ASN.mmdb"
 
+    phishing_model_dir: str = "/data/models/phishing_classifier"
+    ai_text_model_dir: str = "/data/models/ai_text_detector"
+
     upload_max_bytes: int = 25 * 1024 * 1024
     max_analysis_seconds: int = 10
 

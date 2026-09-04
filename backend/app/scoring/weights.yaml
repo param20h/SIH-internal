@@ -45,6 +45,46 @@ anomaly_severity:
   low: 3
   info: 0
 
+# --- Phase 4: AI-derived signals, fused into the same weighted sum ---
+
+phishing_classifier:
+  # A single flat weight above the threshold keeps the explanation
+  # simple ("the classifier flagged this as phishing") rather than a
+  # continuous scale that's harder to justify in one sentence. See
+  # ml/README.md for the model's honestly-reported precision/recall on
+  # its held-out test set -- this is not a guarantee, it's one factor
+  # among many.
+  probability_threshold: 0.7
+  weight: 25
+
+lookalike_domain:
+  # A lookalike sender address is a stronger identity claim than a
+  # lookalike link buried in the body, so it's weighted higher for the
+  # same detection method.
+  sender_domain:
+    homoglyph_skeleton: 30
+    levenshtein: 20
+    jaro_winkler: 15
+    brand_substring: 20
+  url:
+    homoglyph_skeleton: 20
+    levenshtein: 12
+    jaro_winkler: 10
+    brand_substring: 12
+  punycode_bonus: 10 # added once per domain already flagged as a lookalike
+
+url_analysis:
+  ip_literal: 12
+  anchor_text_mismatch: 10
+  newly_registered_domain: 15 # only ever fires with network enrichment enabled
+
+ai_text:
+  # Deliberately the smallest weight in this file -- see
+  # ai_text_detection.py's module docstring for why perplexity-based
+  # AI-text detection is a weak, noisy signal that must never be a
+  # strong driver of the verdict on its own.
+  low_perplexity_flag: 5
+
 verdict_thresholds:
   malicious: 70
   suspicious: 30

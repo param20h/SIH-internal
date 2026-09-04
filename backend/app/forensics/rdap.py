@@ -13,11 +13,26 @@ import json
 import urllib.error
 import urllib.request
 from datetime import UTC, datetime
+from typing import Literal
 
-from app.forensics.models import DomainIntel
+from pydantic import BaseModel
 
 _RDAP_TIMEOUT_SECONDS = 2.5
 _RDAP_ENDPOINT = "https://rdap.org/domain/{domain}"
+
+
+class DomainIntel(BaseModel):
+    """Defined here (where it's produced) rather than in forensics.models,
+    so that forensics.models can depend on app.ai.models (for the
+    ai_signals field on ForensicReport) without a circular import --
+    app.ai.url_analysis also needs this type and does not depend on
+    forensics.models."""
+
+    domain: str
+    registration_date: datetime | None = None
+    age_days: int | None = None
+    source: Literal["live", "cached", "unavailable"]
+    detail: str | None = None
 
 # Process-lifetime cache. A durable, shared cache (Redis/Postgres) belongs
 # in Phase 2's persistence layer; this is enough to make repeated lookups

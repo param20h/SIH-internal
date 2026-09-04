@@ -78,5 +78,18 @@ services:
     depends_on:
       - api
 
+  # One-off training job, not part of the running application stack --
+  # gated behind a profile so `docker compose up` never starts it.
+  # Run explicitly: docker compose run --rm ml python scripts/prepare_data.py
+  #                 docker compose run --rm ml python scripts/train_phishing_classifier.py
+  ml:
+    build:
+      context: ./ml
+    profiles: ["ml"]
+    volumes:
+      - ./ml/scripts:/ml/scripts
+      - ./ml/data:/ml/data
+      - ./data:/data
+
 volumes:
   tva_postgres_data:

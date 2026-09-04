@@ -85,6 +85,44 @@ def render_text_report(report: ForensicReport) -> str:
             badge = "[cached]" if di.source == "cached" else "[live]"
             lines.append(f"domain: {di.domain}  age: {di.age_days} days {badge}")
 
+    _section(lines, "AI & CONTENT SIGNALS (Phase 4)")
+    ai = report.ai_signals
+    if ai.phishing.source == "onnx-model":
+        prob = ai.phishing.phishing_probability or 0.0
+        lines.append(f"phishing classifier: {(ai.phishing.label or '?').upper()} (p={prob:.0%})")
+    else:
+        lines.append(f"phishing classifier: unavailable ({ai.phishing.detail or 'no model'})")
+
+    if ai.sender_domain_lookalike and ai.sender_domain_lookalike.matches:
+        lines.append(f"sender domain lookalike matches ({ai.sender_domain_lookalike.domain}):")
+        for match in ai.sender_domain_lookalike.matches:
+            lines.append(f"  - {match.matched_brand} via {match.method}: {match.detail}")
+    else:
+        lines.append("sender domain lookalike: no matches")
+
+    if ai.urls.urls:
+        lines.append(f"links found: {len(ai.urls.urls)}")
+        for url in ai.urls.urls:
+            flags = []
+            if url.is_ip_literal:
+                flags.append("IP-literal")
+            if url.anchor_text_mismatch:
+                flags.append(f"anchor claims {url.anchor_claimed_domain!r}")
+            if url.unwrapped_target:
+                flags.append(f"unwraps to {url.unwrapped_target}")
+            if url.lookalike and url.lookalike.matches:
+                flags.append(f"lookalike for {url.lookalike.matches[0].matched_brand}")
+            flag_str = f"  [{', '.join(flags)}]" if flags else ""
+            lines.append(f"  - {url.raw_url}{flag_str}")
+    else:
+        lines.append("links found: none")
+
+    if ai.ai_text.source == "onnx-model":
+        flag = " [worth a second look]" if ai.ai_text.low_perplexity_flag else ""
+        lines.append(f"ai-text perplexity: {ai.ai_text.perplexity:.1f}{flag} (weak, informational signal only)")
+    else:
+        lines.append(f"ai-text scoring: unavailable ({ai.ai_text.detail or 'no model'})")
+
     lines.append("")
     return "\n".join(lines)
 

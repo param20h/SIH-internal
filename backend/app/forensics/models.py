@@ -11,6 +11,29 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.ai.models import AiSignals
+from app.forensics.rdap import DomainIntel
+
+__all__ = [
+    "AiSignals",
+    "Anomaly",
+    "AnomalySeverity",
+    "AnomalyType",
+    "AuthMechanism",
+    "AuthResult",
+    "AuthResultValue",
+    "AuthenticationSummary",
+    "DomainIntel",
+    "ForensicReport",
+    "ParseIssue",
+    "ParsedEmailMeta",
+    "RelayHop",
+    "RiskScore",
+    "ScoreCategory",
+    "ScoreFactor",
+    "Verdict",
+]
+
 AuthMechanism = Literal["spf", "dkim", "dmarc"]
 AuthResultValue = Literal[
     "pass", "fail", "softfail", "neutral", "none", "temperror", "permerror", "policy", "unknown"
@@ -104,7 +127,9 @@ class Anomaly(BaseModel):
     evidence: str
 
 
-ScoreCategory = Literal["authentication", "relay_chain"]
+ScoreCategory = Literal[
+    "authentication", "relay_chain", "phishing_classifier", "lookalike_domain", "url_analysis", "ai_text"
+]
 Verdict = Literal["clean", "suspicious", "malicious"]
 
 
@@ -128,14 +153,6 @@ class RiskScore(BaseModel):
     factors: list[ScoreFactor]
 
 
-class DomainIntel(BaseModel):
-    domain: str
-    registration_date: datetime | None = None
-    age_days: int | None = None
-    source: Literal["live", "cached", "unavailable"]
-    detail: str | None = None
-
-
 class ForensicReport(BaseModel):
     filename: str
     meta: ParsedEmailMeta
@@ -145,4 +162,5 @@ class ForensicReport(BaseModel):
     hop_count: int
     risk: RiskScore
     sender_domain_intel: DomainIntel | None = None
+    ai_signals: AiSignals
     generated_at: datetime

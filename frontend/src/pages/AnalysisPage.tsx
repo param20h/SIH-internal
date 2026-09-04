@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 
 import { exportUrl, getAnalysis } from "../lib/api";
+import { AiSignalsPanel } from "../components/analysis/AiSignalsPanel";
 import { HopTable } from "../components/analysis/HopTable";
 import { IndicatorPanel } from "../components/analysis/IndicatorPanel";
 import { RawHeaderViewer } from "../components/analysis/RawHeaderViewer";
@@ -97,6 +98,7 @@ export default function AnalysisPage() {
       </div>
 
       <HopTable analysis={analysis} />
+      <AiSignalsPanel signals={analysis.ai_signals} />
       <IndicatorPanel risk={analysis.risk} anomalies={analysis.anomalies} />
       <RawHeaderViewer analysis={analysis} />
     </div>

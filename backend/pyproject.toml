@@ -20,6 +20,10 @@ dependencies = [
     "geoip2>=4.8.0",
     "python-multipart>=0.0.12",
     "pyyaml>=6.0.2",
+    "rapidfuzz>=3.10.0",
+    "beautifulsoup4>=4.12.3",
+    "onnxruntime>=1.19.0",
+    "tokenizers>=0.20.0",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +53,15 @@ src = ["app", "tests"]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# This file's entire purpose is a table of Unicode characters that are
+# visually confusable with Latin letters -- RUF001 flagging exactly those
+# characters as "ambiguous" is correct in general and expected, not a bug,
+# here.
+"app/ai/confusables.py" = ["RUF001"]
+"tests/ai/test_lookalike_domain.py" = ["RUF003"]
+"tests/forensics/test_scoring_ai_fusion.py" = ["RUF001"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
 
@@ -64,7 +77,7 @@ plugins = ["pydantic.mypy"]
 exclude = ["tests/"]
 
 [[tool.mypy.overrides]]
-module = ["geoip2.*", "spf.*", "dkim.*", "checkdmarc.*", "extract_msg.*", "celery.*"]
+module = ["geoip2.*", "spf.*", "dkim.*", "checkdmarc.*", "extract_msg.*", "celery.*", "onnxruntime.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

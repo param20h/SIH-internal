@@ -1,0 +1,35 @@
+# The "Sacred Timeline" -- the trusted-brand baseline the lookalike-domain
+# detector checks candidate sender/link domains against. A domain that's
+# suspiciously close to one of these (but isn't it) is a lookalike/typosquat
+# candidate. Configurable and editable -- add the brands most relevant to
+# your own users; this list is a reasonable general-purpose starting point,
+# not exhaustive.
+
+- paypal.com
+- apple.com
+- microsoft.com
+- google.com
+- amazon.com
+- facebook.com
+- instagram.com
+- linkedin.com
+- netflix.com
+- dropbox.com
+- docusign.com
+- adobe.com
+- ebay.com
+- chase.com
+- wellsfargo.com
+- bankofamerica.com
+- americanexpress.com
+- citibank.com
+- hsbc.com
+- coinbase.com
+- binance.com
+- github.com
+- salesforce.com
+- zoom.us
+- office.com
+- outlook.com
+- icloud.com
+- yahoo.com

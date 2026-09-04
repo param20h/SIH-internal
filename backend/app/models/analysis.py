@@ -48,9 +48,9 @@ class Analysis(Base):
 
     # risk_score/verdict are normalized for filtering & stats; the full
     # explainable factor breakdown is not persisted separately -- it's a
-    # pure function of authentication_json + the anomalies table, so it's
-    # recomputed on read (see crud.to_analysis_detail) rather than stored
-    # twice.
+    # pure function of authentication_json + the anomalies table +
+    # ai_signals_json, so it's recomputed on read (see
+    # crud.to_analysis_detail) rather than stored twice.
     risk_score: Mapped[int] = mapped_column(default=0, index=True)
     verdict: Mapped[str] = mapped_column(String(16), default="clean", index=True)
 
@@ -58,9 +58,18 @@ class Analysis(Base):
     anomaly_count: Mapped[int] = mapped_column(default=0)
     highest_anomaly_severity: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
 
+    # Normalized for filtering/stats; None for rows analyzed before Phase 4
+    # (no phishing-classifier verdict exists for them) or when the model
+    # simply wasn't present at analysis time.
+    phishing_probability: Mapped[float | None] = mapped_column(nullable=True, index=True)
+
     meta_json: Mapped[dict[str, Any]] = mapped_column(JSONB)
     authentication_json: Mapped[dict[str, Any]] = mapped_column(JSONB)
     sender_domain_intel_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    # Nullable: rows analyzed before Phase 4 predate this signal bundle
+    # entirely. See crud._DEFAULT_AI_SIGNALS for the reconstruction
+    # fallback used for such rows.
+    ai_signals_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 

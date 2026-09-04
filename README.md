@@ -13,18 +13,33 @@ See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the full phase-by-phase build
 log — what was built, real bugs found while verifying (not just what was
 planned), and every design tradeoff decided along the way.
 
-**Phase 3 — Frontend.** Phases 0–2 are done: monorepo + Docker Compose
-foundation, the deterministic zero-ML forensics engine in
-[`backend/app/forensics/`](backend/app/forensics/) (crash-proof .eml/.msg
-parsing, SPF/DKIM/DMARC verdict extraction, relay-chain reconstruction and
-anomaly detection), an explainable weighted risk-scoring engine
-([`backend/app/scoring/`](backend/app/scoring/)), and a REST API + Postgres
-persistence layer. Phase 3 adds the React/TypeScript web app: drag-and-drop
-or paste-raw-headers upload, an analysis view with a verdict banner,
-weighted indicator breakdown ("Miss Minutes"), an offline-bundled relay-path
-world map, a raw-header viewer with anomalous lines highlighted, a Nexus
-Events list, and a stats dashboard. Open `http://localhost:5173` once the
-stack is up, or try the CLI directly:
+**Phase 4 — AI detection layer.** Phases 0–3 are done: monorepo + Docker
+Compose foundation, the deterministic zero-ML forensics engine in
+[`backend/app/forensics/`](backend/app/forensics/), an explainable weighted
+risk-scoring engine ([`backend/app/scoring/`](backend/app/scoring/)), a REST
+API + Postgres persistence layer, and the React/TypeScript web app
+(upload, analysis view, relay-path world map, dashboard). Phase 4 adds
+content-based AI signals in [`backend/app/ai/`](backend/app/ai/) — a
+lookalike/typosquat domain detector, URL analysis (IP-literal links,
+anchor-text mismatches, offline redirect unwrapping), a real fine-tuned
+DistilBERT phishing classifier (98%+ held-out F1, exported to ONNX — see
+[`ml/README.md`](ml/README.md) for the full methodology and an honest
+account of a real overfitting bug found and fixed while building it), and
+a DistilGPT-2 perplexity-based AI-text signal — all fused into the same
+explainable risk score Phase 3 built. Train the models with:
+
+```bash
+docker compose build ml
+docker compose run --rm ml python scripts/prepare_data.py
+docker compose run --rm ml python scripts/train_phishing_classifier.py
+docker compose run --rm ml python scripts/export_ai_text_model.py
+```
+
+The app works fully without them too — per the hard offline/zero-model
+constraint, every AI signal reports "unavailable" and contributes nothing
+to the score until trained, rather than failing.
+
+Open `http://localhost:5173` once the stack is up, or try the CLI directly:
 
 ```bash
 docker compose run --rm api python -m app.forensics.cli /data/samples/13_forged_received_header_injected.eml

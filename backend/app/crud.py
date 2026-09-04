@@ -11,6 +11,10 @@ from collections.abc import Sequence
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.ai.ai_text_detection import AiTextScore
+from app.ai.models import AiSignals
+from app.ai.phishing_classifier import PhishingClassification
+from app.ai.url_analysis import UrlAnalysis
 from app.forensics.models import (
     Anomaly as AnomalyReport,
 )
@@ -26,6 +30,15 @@ from app.schemas.analysis import AnalysisDetail, AnalysisSummary, AnomalyOut, Ho
 from app.scoring.engine import compute_risk_score
 
 _SEVERITY_RANK: dict[str, int] = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+
+# Fallback for rows analyzed before Phase 4 added AI signals -- honestly
+# represents "this predates the feature" rather than fabricating a result.
+_DEFAULT_AI_SIGNALS = AiSignals(
+    sender_domain_lookalike=None,
+    urls=UrlAnalysis(urls=[]),
+    phishing=PhishingClassification(source="unavailable", detail="analyzed before Phase 4 AI signals existed"),
+    ai_text=AiTextScore(source="unavailable", detail="analyzed before Phase 4 AI signals existed"),
+)
 
 
 def create_pending_analysis(db: Session, *, raw: bytes, filename: str) -> Analysis:
@@ -72,11 +85,13 @@ def complete_analysis(db: Session, analysis: Analysis, report: ForensicReport) -
     analysis.hop_count = report.hop_count
     analysis.anomaly_count = len(report.anomalies)
     analysis.highest_anomaly_severity = highest_severity
+    analysis.phishing_probability = report.ai_signals.phishing.phishing_probability
     analysis.meta_json = report.meta.model_dump(mode="json")
     analysis.authentication_json = auth.model_dump(mode="json")
     analysis.sender_domain_intel_json = (
         report.sender_domain_intel.model_dump(mode="json") if report.sender_domain_intel else None
     )
+    analysis.ai_signals_json = report.ai_signals.model_dump(mode="json")
 
     analysis.hops = [
         Hop(
@@ -184,18 +199,20 @@ def to_analysis_detail(analysis: Analysis) -> AnalysisDetail:
     """
     authentication = AuthenticationSummary.model_validate(analysis.authentication_json)
     forensic_anomalies = _forensic_anomalies(analysis)
+    ai_signals = _reconstruct_ai_signals(analysis)
     return AnalysisDetail(
         **AnalysisSummary.model_validate(analysis).model_dump(),
         meta=ParsedEmailMeta.model_validate(analysis.meta_json),
         authentication=authentication,
         hops=[HopOut.model_validate(hop) for hop in analysis.hops],
         anomalies=[AnomalyOut.model_validate(a) for a in analysis.anomalies],
-        risk=compute_risk_score(authentication, forensic_anomalies),
+        risk=compute_risk_score(authentication, forensic_anomalies, ai_signals),
         sender_domain_intel=(
             DomainIntel.model_validate(analysis.sender_domain_intel_json)
             if analysis.sender_domain_intel_json
             else None
         ),
+        ai_signals=ai_signals,
     )
 
 
@@ -208,6 +225,7 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
     """
     authentication = AuthenticationSummary.model_validate(analysis.authentication_json)
     forensic_anomalies = _forensic_anomalies(analysis)
+    ai_signals = _reconstruct_ai_signals(analysis)
     return ForensicReport(
         filename=analysis.filename,
         meta=ParsedEmailMeta.model_validate(analysis.meta_json),
@@ -236,14 +254,21 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
         ],
         anomalies=forensic_anomalies,
         hop_count=analysis.hop_count,
-        risk=compute_risk_score(authentication, forensic_anomalies),
+        risk=compute_risk_score(authentication, forensic_anomalies, ai_signals),
         sender_domain_intel=(
             DomainIntel.model_validate(analysis.sender_domain_intel_json)
             if analysis.sender_domain_intel_json
             else None
         ),
+        ai_signals=ai_signals,
         generated_at=analysis.created_at,
     )
+
+
+def _reconstruct_ai_signals(analysis: Analysis) -> AiSignals:
+    if not analysis.ai_signals_json:
+        return _DEFAULT_AI_SIGNALS
+    return AiSignals.model_validate(analysis.ai_signals_json)
 
 
 def _forensic_anomalies(analysis: Analysis) -> list[AnomalyReport]:

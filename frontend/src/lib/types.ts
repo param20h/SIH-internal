@@ -6,7 +6,13 @@
 export type AnalysisStatus = "pending" | "processing" | "complete" | "failed";
 export type Verdict = "clean" | "suspicious" | "malicious";
 export type AnomalySeverity = "info" | "low" | "medium" | "high" | "critical";
-export type ScoreCategory = "authentication" | "relay_chain";
+export type ScoreCategory =
+  | "authentication"
+  | "relay_chain"
+  | "phishing_classifier"
+  | "lookalike_domain"
+  | "url_analysis"
+  | "ai_text";
 export type AuthResultValue =
   | "pass"
   | "fail"
@@ -136,6 +142,62 @@ export interface AnalysisSummary {
   created_at: string;
 }
 
+// --- Phase 4: AI/content signals ---
+
+export type LookalikeMethod = "homoglyph_skeleton" | "levenshtein" | "jaro_winkler" | "brand_substring";
+
+export interface LookalikeMatch {
+  matched_brand: string;
+  method: LookalikeMethod;
+  detail: string;
+}
+
+export interface LookalikeAnalysis {
+  domain: string;
+  is_punycode: boolean;
+  decoded_unicode: string | null;
+  matches: LookalikeMatch[];
+}
+
+export interface ExtractedUrl {
+  raw_url: string;
+  scheme: string | null;
+  host: string | null;
+  is_ip_literal: boolean;
+  anchor_text: string | null;
+  anchor_claimed_domain: string | null;
+  anchor_text_mismatch: boolean;
+  unwrapped_target: string | null;
+  lookalike: LookalikeAnalysis | null;
+  domain_intel: DomainIntel | null;
+  is_newly_registered: boolean | null;
+}
+
+export interface UrlAnalysis {
+  urls: ExtractedUrl[];
+}
+
+export interface PhishingClassification {
+  source: "onnx-model" | "unavailable";
+  phishing_probability: number | null;
+  label: "phishing" | "ham" | null;
+  detail: string | null;
+}
+
+export interface AiTextScore {
+  source: "onnx-model" | "unavailable" | "text-too-short";
+  perplexity: number | null;
+  low_perplexity_flag: boolean;
+  detail: string | null;
+}
+
+export interface AiSignals {
+  sender_domain_lookalike: LookalikeAnalysis | null;
+  urls: UrlAnalysis;
+  phishing: PhishingClassification;
+  ai_text: AiTextScore;
+}
+
 export interface AnalysisDetail extends AnalysisSummary {
   meta: ParsedEmailMeta;
   authentication: AuthenticationSummary;
@@ -143,6 +205,7 @@ export interface AnalysisDetail extends AnalysisSummary {
   anomalies: AnomalyOut[];
   risk: RiskScore;
   sender_domain_intel: DomainIntel | null;
+  ai_signals: AiSignals;
 }
 
 export interface AnalysisListResponse {
