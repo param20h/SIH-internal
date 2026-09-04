@@ -16,7 +16,7 @@ Status at a glance:
 | 1 | Deterministic forensics engine | done | `efcf26b` |
 | 2 | API + persistence | done | `a5bb0d0` |
 | 3 | Frontend | done | `5e3346c`, `698c360` |
-| 4 | AI detection layer | done | `<pending>` |
+| 4 | AI detection layer | done | `a049863` |
 | 5 | Attribution & evidence export | not started | — |
 | 6 | Demo hardening | not started | — |
 
@@ -415,7 +415,7 @@ output. `tsc --noEmit` and `eslint .` both clean; backend suite still
 
 ## Phase 4 — AI detection layer
 
-**Commit:** `<pending>`
+**Commit:** `a049863`
 
 Built all four sub-systems the brief specifies, plus fused them into the
 existing weighted risk score:
