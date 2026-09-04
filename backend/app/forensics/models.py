@@ -17,14 +17,17 @@ from app.forensics.rdap import DomainIntel
 __all__ = [
     "AiSignals",
     "Anomaly",
+    "AttachmentInfo",
     "AnomalySeverity",
     "AnomalyType",
+    "AttributionConfidence",
     "AuthMechanism",
     "AuthResult",
     "AuthResultValue",
     "AuthenticationSummary",
     "DomainIntel",
     "ForensicReport",
+    "OriginAttribution",
     "ParseIssue",
     "ParsedEmailMeta",
     "RelayHop",
@@ -58,6 +61,13 @@ class ParseIssue(BaseModel):
     detail: str
 
 
+class AttachmentInfo(BaseModel):
+    filename: str
+    content_type: str | None = None
+    size_bytes: int
+    sha256: str
+
+
 class ParsedEmailMeta(BaseModel):
     from_display_name: str | None = None
     from_address: str | None = None
@@ -70,6 +80,7 @@ class ParsedEmailMeta(BaseModel):
     content_type: str | None = None
     has_attachments: bool = False
     attachment_names: list[str] = Field(default_factory=list)
+    attachments: list[AttachmentInfo] = Field(default_factory=list)
     parse_confidence: float = Field(ge=0.0, le=1.0)
     issues: list[ParseIssue] = Field(default_factory=list)
     source_format: Literal["eml", "msg"]
@@ -153,6 +164,27 @@ class RiskScore(BaseModel):
     factors: list[ScoreFactor]
 
 
+AttributionConfidence = Literal["low", "medium", "high", "unknown"]
+
+
+class OriginAttribution(BaseModel):
+    """Defined here, not in app/attribution/origin.py where it's produced:
+    attribute_origin() is tightly coupled to RelayHop/Anomaly/AuthResult
+    (it walks the relay chain directly), so it already depends on this
+    module -- defining the type here too keeps that a one-directional
+    dependency (attribution -> forensics.models) instead of circular,
+    the same reasoning that put DomainIntel in forensics/rdap.py."""
+
+    source: Literal["heuristic", "unavailable"]
+    origin_ip: str | None = None
+    origin_hop_sequence: int | None = None
+    asn: int | None = None
+    asn_org: str | None = None
+    country: str | None = None
+    confidence: AttributionConfidence = "unknown"
+    reasoning: str
+
+
 class ForensicReport(BaseModel):
     filename: str
     meta: ParsedEmailMeta
@@ -163,4 +195,5 @@ class ForensicReport(BaseModel):
     risk: RiskScore
     sender_domain_intel: DomainIntel | None = None
     ai_signals: AiSignals
+    attribution: OriginAttribution
     generated_at: datetime

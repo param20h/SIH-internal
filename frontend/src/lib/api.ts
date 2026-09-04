@@ -2,6 +2,7 @@ import type {
   AnalysisDetail,
   AnalysisListResponse,
   BatchUploadResponse,
+  IocListResponse,
   StatsResponse,
 } from "./types";
 
@@ -108,6 +109,29 @@ export async function fetchStats(): Promise<StatsResponse> {
   return (await response.json()) as StatsResponse;
 }
 
-export function exportUrl(id: string, format: "json" | "txt" | "eml"): string {
+export async function getIocs(id: string): Promise<IocListResponse> {
+  const response = await fetch(`${API_V1}/analyses/${id}/iocs`);
+  if (!response.ok) {
+    throw new ApiError(response.status, await parseErrorDetail(response));
+  }
+  return (await response.json()) as IocListResponse;
+}
+
+export async function updateAnalystNotes(id: string, notes: string): Promise<AnalysisDetail> {
+  const response = await fetch(`${API_V1}/analyses/${id}/notes`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notes }),
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, await parseErrorDetail(response));
+  }
+  return (await response.json()) as AnalysisDetail;
+}
+
+export function exportUrl(
+  id: string,
+  format: "json" | "txt" | "eml" | "pdf" | "stix" | "ioc-csv",
+): string {
   return `${API_V1}/analyses/${id}/export?format=${format}`;
 }

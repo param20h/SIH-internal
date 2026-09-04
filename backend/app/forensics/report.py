@@ -9,6 +9,7 @@ produces a usable (if low-confidence) report instead of a 500.
 from datetime import UTC, datetime
 
 from app.ai.pipeline import analyze_ai_signals
+from app.attribution.origin import attribute_origin
 from app.forensics.anomalies import detect_anomalies
 from app.forensics.auth import extract_authentication
 from app.forensics.geoip import enrich_hops
@@ -48,6 +49,7 @@ def generate_report(
         enable_network_enrichment=enable_network_enrichment,
     )
     risk = compute_risk_score(authentication, anomalies, ai_signals)
+    attribution = attribute_origin(hops, anomalies, authentication.spf)
 
     return ForensicReport(
         filename=filename,
@@ -59,6 +61,7 @@ def generate_report(
         risk=risk,
         sender_domain_intel=sender_domain_intel,
         ai_signals=ai_signals,
+        attribution=attribution,
         generated_at=datetime.now(tz=UTC),
     )
 

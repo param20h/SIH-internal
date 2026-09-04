@@ -24,6 +24,7 @@ dependencies = [
     "beautifulsoup4>=4.12.3",
     "onnxruntime>=1.19.0",
     "tokenizers>=0.20.0",
+    "reportlab>=4.2.5",
 ]
 
 [project.optional-dependencies]

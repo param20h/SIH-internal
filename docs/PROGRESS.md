@@ -17,7 +17,7 @@ Status at a glance:
 | 2 | API + persistence | done | `a5bb0d0` |
 | 3 | Frontend | done | `5e3346c`, `698c360` |
 | 4 | AI detection layer | done | `a049863` |
-| 5 | Attribution & evidence export | not started | — |
+| 5 | Attribution & evidence export | done | `<pending>` |
 | 6 | Demo hardening | not started | — |
 
 ---
@@ -524,3 +524,114 @@ number cross 10s. Fixed the test to warm the model cache before timing
 (the `app.ai.pipeline` singletons mean later calls never pay that cost
 again) and assert on true per-email average -- which stays well under a
 second, nowhere near the actual 10s/email budget.
+
+## Phase 5 — Attribution & evidence export
+
+**Commit:** `<pending>`
+
+Built the four sub-systems the brief specifies for this phase:
+
+- **IOC extraction** (`app/attribution/ioc.py`) — walks a completed
+  `ForensicReport` and pulls out every indicator with forensic value: the
+  sender email, every relay hop's source IP and claimed hostname, every
+  attachment's SHA-256, and every extracted URL's raw form, host, and
+  unwrapped redirect target. Deduplicated on `(type, value)`, and each
+  entry carries a human-readable `context` string explaining where it was
+  found -- an IOC list with no provenance is much less useful in an
+  incident-response workflow. Deliberately does *not* try to filter out
+  "our own" mail infrastructure hostnames -- there's no reliable generic
+  way to know which hop hostnames belong to the recipient's own mail
+  system versus the attacker's, so all of them are surfaced and the
+  analyst judges.
+- **STIX 2.1 export** (`app/attribution/export.py`) — hand-rolled bundle
+  generation (`indicator--<uuid>` SDOs with a `pattern`/`pattern_type:
+  "stix"` per IOC type), not the `stix2` library. The bundle shape STIX
+  2.1 needs for a simple indicator list is small and fully specified;
+  pulling in a library (and its schema-validation machinery) for six
+  pattern templates was more dependency than the problem justified.
+- **Plain CSV export** — same IOC list, `type,value,context` columns, for
+  tooling that doesn't speak STIX.
+- **Origin attribution** (`app/attribution/origin.py`) — a confidence-
+  scored *heuristic*, not a claim of certainty: it picks the earliest hop
+  in the relay chain reporting a public, non-bogon source IP, then caps
+  confidence at `"low"` if any relay-chain-tampering anomaly
+  (`forged_internal_origin`, `negative_time_delta`) affects that hop or
+  an earlier one -- because a tampered chain means the "earliest public
+  hop" itself could be a forged claim, not the true origin. Confidence is
+  `"high"` only when GeoIP/ASN enrichment succeeded and there's no
+  forgery signal, `"medium"` with no forgery signal but no enrichment,
+  and the reasoning text always explains which of these applied and why,
+  plus whether SPF corroborates or contradicts the candidate IP.
+- **Forensic PDF report** (`app/attribution/pdf_report.py`) — ReportLab
+  (not WeasyPrint: pure-Python, no Pango/Cairo/GDK-Pixbuf system
+  dependencies to bundle for offline operation). Chain of custody
+  (original filename, SHA-256, parse confidence), verdict, authentication
+  table, origin attribution, relay chain table, a hand-drawn lat/long
+  "map snapshot" (ReportLab's own `Drawing`/`Circle`/`Line`/`String`
+  primitives, not matplotlib -- red markers for bogon hops, blue for
+  others, connecting lines in hop order) that honestly reports "No hop
+  geolocation available" when GeoIP data isn't present rather than
+  drawing an empty or misleading map, the full indicator breakdown, the
+  IOC table, and analyst notes.
+
+Also added an editable `analyst_notes` field on each analysis (new
+nullable `TEXT` column, PATCH `/analyses/{id}/notes` endpoint) -- a real
+casework flow needs a place for a human analyst's own findings alongside
+the machine-generated evidence, and it shows up in both the UI and the
+PDF report.
+
+**Verified live, not just in tests**: ran the actual Docker Compose stack,
+uploaded `13_forged_received_header_injected.eml`, and exercised every new
+endpoint against the real running app: `GET .../export?format=pdf`
+returned a valid 2-page, 6895-byte PDF with correct chain-of-custody,
+verdict, attribution, relay-chain, indicator, and IOC sections;
+`?format=stix` returned a well-formed bundle with correct
+`[email-addr:value = 'security@example-corp.test']`-style patterns;
+`?format=ioc-csv` returned correct rows; `GET .../iocs` returned
+`{"case_id":"TVA-80CA680C","iocs":[...]}`; `PATCH .../notes` saved
+analyst text and returned it in the full `AnalysisDetail` payload.
+Frontend: added `AttributionPanel`, `IocTable` (with STIX/CSV export
+buttons), and `AnalystNotes` (editable, autosaves via `PATCH`) components,
+wired into `AnalysisPage.tsx` alongside a new "Forensic PDF report"
+export button; confirmed all three render correctly against the live
+analysis above (attribution reasoning text, all 9 extracted IOCs, working
+notes counter) via the running dev server. 230/230 backend tests pass (27
+new), `ruff`/`mypy --strict` clean, frontend `tsc`/`eslint` clean.
+
+### Decisions made this phase
+
+**`OriginAttribution`/`AttributionConfidence` are defined directly in
+`forensics/models.py`, not in `app/attribution/origin.py` where they're
+produced.** Same class of circular-import problem as Phase 4's
+`DomainIntel`: `forensics.models.ForensicReport` needs `OriginAttribution`
+for its new `attribution` field, and `attribute_origin()` needs
+`RelayHop`/`Anomaly`/`AuthResult` from `forensics.models` to do its job.
+Unlike `DomainIntel`, `origin.py` is tightly coupled to those core
+forensic types -- it walks the relay chain directly -- so it couldn't
+become the "more foundational" module the way `rdap.py` could. Defining
+the output type in `forensics.models` instead keeps the dependency
+one-directional (`attribution` → `forensics.models`, never back), and the
+class docstring records this precedent for whichever future module hits
+the same shape of problem.
+
+**STIX and CSV export are hand-rolled, not built on the `stix2`
+library.** A STIX 2.1 indicator bundle for six flat IOC types is a small,
+fully-specified JSON shape; the `stix2` library's main value (schema
+validation, typed SDO construction, relationship graphs) buys little here
+and adds a dependency whose transitive footprint isn't worth it for what
+amounts to six string templates.
+
+**`case_id` is derived from the analysis UUID (`TVA-<first 8 hex chars,
+uppercase>`), never stored as its own column.** It's used consistently
+across the PDF, STIX bundle, and IOC endpoint, but computing it in
+`crud.case_id_for()` means it can never drift out of sync with the row it
+names, and there's no migration or backfill question for existing rows.
+
+**Origin attribution is explicitly a `"heuristic"` source, not a
+`"confirmed"` one, and confidence is capped downward rather than computed
+as a positive score.** A forensic tool that presents "high confidence"
+by default and only reluctantly admits uncertainty would be actively
+misleading in exactly the tampered-header cases where attribution matters
+most -- so the design starts from "how much reason is there to doubt this
+candidate" and only reaches `"high"` when nothing found a reason to
+doubt it *and* independent enrichment corroborates it.

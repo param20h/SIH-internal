@@ -71,6 +71,11 @@ class Analysis(Base):
     # fallback used for such rows.
     ai_signals_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
+    # Free-text case notes an analyst can attach, surfaced on the forensic
+    # PDF report's "analyst notes" field. Not computed from the message --
+    # a human writes this, so it's simply persisted and returned as-is.
+    analyst_notes: Mapped[str | None] = mapped_column(String(4096), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 
     hops: Mapped[list["Hop"]] = relationship(

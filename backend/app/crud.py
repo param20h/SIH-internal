@@ -15,6 +15,7 @@ from app.ai.ai_text_detection import AiTextScore
 from app.ai.models import AiSignals
 from app.ai.phishing_classifier import PhishingClassification
 from app.ai.url_analysis import UrlAnalysis
+from app.attribution.origin import attribute_origin
 from app.forensics.models import (
     Anomaly as AnomalyReport,
 )
@@ -137,6 +138,20 @@ def fail_analysis(db: Session, analysis: Analysis, detail: str) -> Analysis:
     return analysis
 
 
+def update_analyst_notes(db: Session, analysis: Analysis, notes: str) -> Analysis:
+    analysis.analyst_notes = notes
+    db.flush()
+    return analysis
+
+
+def case_id_for(analysis: Analysis) -> str:
+    """A short, human-readable case identifier for the PDF report and
+    exports -- derived from the analysis id rather than a separate
+    sequence/column, so it's always available and never drifts out of
+    sync with the row it names."""
+    return f"TVA-{analysis.id.hex[:8].upper()}"
+
+
 def create_completed_analysis(db: Session, *, raw: bytes, filename: str, report: ForensicReport) -> Analysis:
     analysis = create_pending_analysis(db, raw=raw, filename=filename)
     return complete_analysis(db, analysis, report)
@@ -199,6 +214,7 @@ def to_analysis_detail(analysis: Analysis) -> AnalysisDetail:
     """
     authentication = AuthenticationSummary.model_validate(analysis.authentication_json)
     forensic_anomalies = _forensic_anomalies(analysis)
+    forensic_hops = _forensic_hops(analysis)
     ai_signals = _reconstruct_ai_signals(analysis)
     return AnalysisDetail(
         **AnalysisSummary.model_validate(analysis).model_dump(),
@@ -213,6 +229,7 @@ def to_analysis_detail(analysis: Analysis) -> AnalysisDetail:
             else None
         ),
         ai_signals=ai_signals,
+        attribution=attribute_origin(forensic_hops, forensic_anomalies, authentication.spf),
     )
 
 
@@ -225,33 +242,13 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
     """
     authentication = AuthenticationSummary.model_validate(analysis.authentication_json)
     forensic_anomalies = _forensic_anomalies(analysis)
+    forensic_hops = _forensic_hops(analysis)
     ai_signals = _reconstruct_ai_signals(analysis)
     return ForensicReport(
         filename=analysis.filename,
         meta=ParsedEmailMeta.model_validate(analysis.meta_json),
         authentication=authentication,
-        hops=[
-            RelayHop(
-                sequence=hop.sequence,
-                raw_header=hop.raw_header,
-                from_host=hop.from_host,
-                from_ip=hop.from_ip,
-                by_host=hop.by_host,
-                protocol=hop.protocol,
-                timestamp_raw=hop.timestamp_raw,
-                timestamp=hop.timestamp,
-                parse_confidence=hop.parse_confidence,
-                asn=hop.asn,
-                asn_org=hop.asn_org,
-                country=hop.country,
-                city=hop.city,
-                latitude=hop.latitude,
-                longitude=hop.longitude,
-                enrichment_source=hop.enrichment_source,
-                is_bogon=hop.is_bogon,
-            )
-            for hop in analysis.hops
-        ],
+        hops=forensic_hops,
         anomalies=forensic_anomalies,
         hop_count=analysis.hop_count,
         risk=compute_risk_score(authentication, forensic_anomalies, ai_signals),
@@ -261,8 +258,34 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
             else None
         ),
         ai_signals=ai_signals,
+        attribution=attribute_origin(forensic_hops, forensic_anomalies, authentication.spf),
         generated_at=analysis.created_at,
     )
+
+
+def _forensic_hops(analysis: Analysis) -> list[RelayHop]:
+    return [
+        RelayHop(
+            sequence=hop.sequence,
+            raw_header=hop.raw_header,
+            from_host=hop.from_host,
+            from_ip=hop.from_ip,
+            by_host=hop.by_host,
+            protocol=hop.protocol,
+            timestamp_raw=hop.timestamp_raw,
+            timestamp=hop.timestamp,
+            parse_confidence=hop.parse_confidence,
+            asn=hop.asn,
+            asn_org=hop.asn_org,
+            country=hop.country,
+            city=hop.city,
+            latitude=hop.latitude,
+            longitude=hop.longitude,
+            enrichment_source=hop.enrichment_source,
+            is_bogon=hop.is_bogon,
+        )
+        for hop in analysis.hops
+    ]
 
 
 def _reconstruct_ai_signals(analysis: Analysis) -> AiSignals:

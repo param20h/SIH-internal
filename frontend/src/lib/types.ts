@@ -24,9 +24,19 @@ export type AuthResultValue =
   | "policy"
   | "unknown";
 
+export type AttributionConfidence = "low" | "medium" | "high" | "unknown";
+export type IocType = "ipv4" | "ipv6" | "domain" | "url" | "sha256" | "email";
+
 export interface ParseIssue {
   field: string;
   detail: string;
+}
+
+export interface AttachmentInfo {
+  filename: string;
+  content_type: string | null;
+  size_bytes: number;
+  sha256: string;
 }
 
 export interface ParsedEmailMeta {
@@ -41,6 +51,7 @@ export interface ParsedEmailMeta {
   content_type: string | null;
   has_attachments: boolean;
   attachment_names: string[];
+  attachments: AttachmentInfo[];
   parse_confidence: number;
   issues: ParseIssue[];
   source_format: "eml" | "msg";
@@ -139,6 +150,8 @@ export interface AnalysisSummary {
   hop_count: number;
   anomaly_count: number;
   highest_anomaly_severity: AnomalySeverity | null;
+  phishing_probability: number | null;
+  analyst_notes: string | null;
   created_at: string;
 }
 
@@ -198,6 +211,30 @@ export interface AiSignals {
   ai_text: AiTextScore;
 }
 
+// --- Phase 5: attribution & evidence export ---
+
+export interface OriginAttribution {
+  source: "heuristic" | "unavailable";
+  origin_ip: string | null;
+  origin_hop_sequence: number | null;
+  asn: number | null;
+  asn_org: string | null;
+  country: string | null;
+  confidence: AttributionConfidence;
+  reasoning: string;
+}
+
+export interface Ioc {
+  type: IocType;
+  value: string;
+  context: string;
+}
+
+export interface IocListResponse {
+  case_id: string;
+  iocs: Ioc[];
+}
+
 export interface AnalysisDetail extends AnalysisSummary {
   meta: ParsedEmailMeta;
   authentication: AuthenticationSummary;
@@ -206,6 +243,7 @@ export interface AnalysisDetail extends AnalysisSummary {
   risk: RiskScore;
   sender_domain_intel: DomainIntel | null;
   ai_signals: AiSignals;
+  attribution: OriginAttribution;
 }
 
 export interface AnalysisListResponse {

@@ -13,20 +13,28 @@ See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the full phase-by-phase build
 log — what was built, real bugs found while verifying (not just what was
 planned), and every design tradeoff decided along the way.
 
-**Phase 4 — AI detection layer.** Phases 0–3 are done: monorepo + Docker
-Compose foundation, the deterministic zero-ML forensics engine in
+**Phase 5 — Attribution & evidence export.** Phases 0–4 are done: monorepo +
+Docker Compose foundation, the deterministic zero-ML forensics engine in
 [`backend/app/forensics/`](backend/app/forensics/), an explainable weighted
 risk-scoring engine ([`backend/app/scoring/`](backend/app/scoring/)), a REST
-API + Postgres persistence layer, and the React/TypeScript web app
-(upload, analysis view, relay-path world map, dashboard). Phase 4 adds
-content-based AI signals in [`backend/app/ai/`](backend/app/ai/) — a
-lookalike/typosquat domain detector, URL analysis (IP-literal links,
-anchor-text mismatches, offline redirect unwrapping), a real fine-tuned
-DistilBERT phishing classifier (98%+ held-out F1, exported to ONNX — see
+API + Postgres persistence layer, the React/TypeScript web app (upload,
+analysis view, relay-path world map, dashboard), and content-based AI
+signals in [`backend/app/ai/`](backend/app/ai/) — a lookalike/typosquat
+domain detector, URL analysis (IP-literal links, anchor-text mismatches,
+offline redirect unwrapping), a real fine-tuned DistilBERT phishing
+classifier (98%+ held-out F1, exported to ONNX — see
 [`ml/README.md`](ml/README.md) for the full methodology and an honest
-account of a real overfitting bug found and fixed while building it), and
-a DistilGPT-2 perplexity-based AI-text signal — all fused into the same
-explainable risk score Phase 3 built. Train the models with:
+account of a real overfitting bug found and fixed while building it), and a
+DistilGPT-2 perplexity-based AI-text signal, all fused into one explainable
+risk score. Phase 5 adds attribution and evidence export in
+[`backend/app/attribution/`](backend/app/attribution/): IOC extraction,
+STIX 2.1 and CSV export, a confidence-scored heuristic origin-attribution
+engine that explains its own reasoning (and openly caps its confidence when
+the relay chain shows signs of tampering), a court-oriented forensic PDF
+report (chain of custody, verdict, authentication, attribution, relay
+chain, a hand-drawn geolocation map, indicator breakdown, IOCs, analyst
+notes), and an editable analyst-notes field surfaced in both the UI and the
+PDF. Train the AI models with:
 
 ```bash
 docker compose build ml

@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 
-import { exportUrl, getAnalysis } from "../lib/api";
+import { exportUrl, getAnalysis, getIocs } from "../lib/api";
 import { AiSignalsPanel } from "../components/analysis/AiSignalsPanel";
+import { AnalystNotes } from "../components/analysis/AnalystNotes";
+import { AttributionPanel } from "../components/analysis/AttributionPanel";
 import { HopTable } from "../components/analysis/HopTable";
 import { IndicatorPanel } from "../components/analysis/IndicatorPanel";
+import { IocTable } from "../components/analysis/IocTable";
 import { RawHeaderViewer } from "../components/analysis/RawHeaderViewer";
 import { RelayMap } from "../components/analysis/RelayMap";
 import { VerdictBanner } from "../components/analysis/VerdictBanner";
@@ -48,6 +51,22 @@ export default function AnalysisPage() {
     );
   }
 
+  return <CompleteAnalysisView id={id!} analysis={analysis} />;
+}
+
+function CompleteAnalysisView({
+  id,
+  analysis,
+}: {
+  id: string;
+  analysis: NonNullable<Awaited<ReturnType<typeof getAnalysis>>>;
+}) {
+  const { data: iocData } = useQuery({
+    queryKey: ["analysis", id, "iocs"],
+    queryFn: () => getIocs(id),
+    enabled: analysis.status === "complete",
+  });
+
   if (analysis.status !== "complete") {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center gap-3 px-4 py-24 text-center">
@@ -83,6 +102,9 @@ export default function AnalysisPage() {
           <a href={exportUrl(analysis.id, "json")} download>
             <Button variant="secondary">Export .json</Button>
           </a>
+          <a href={exportUrl(analysis.id, "pdf")} download>
+            <Button variant="primary">Forensic PDF report</Button>
+          </a>
         </div>
       </div>
 
@@ -98,8 +120,11 @@ export default function AnalysisPage() {
       </div>
 
       <HopTable analysis={analysis} />
+      <AttributionPanel attribution={analysis.attribution} />
       <AiSignalsPanel signals={analysis.ai_signals} />
       <IndicatorPanel risk={analysis.risk} anomalies={analysis.anomalies} />
+      <IocTable analysisId={analysis.id} iocs={iocData?.iocs ?? []} />
+      <AnalystNotes analysis={analysis} />
       <RawHeaderViewer analysis={analysis} />
     </div>
   );

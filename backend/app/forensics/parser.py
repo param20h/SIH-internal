@@ -16,7 +16,7 @@ from email.parser import BytesParser
 from email.utils import getaddresses, parsedate_to_datetime
 from typing import Any, Literal
 
-from app.forensics.models import ParsedEmailMeta, ParseIssue
+from app.forensics.models import AttachmentInfo, ParsedEmailMeta, ParseIssue
 
 REQUIRED_HEADERS = ("From", "Date", "Subject", "Message-ID")
 DEFECT_PENALTY = 0.05
@@ -122,6 +122,7 @@ def _build_meta(
     content_type = None
     has_attachments = False
     attachment_names: list[str] = []
+    attachments: list[AttachmentInfo] = []
     try:
         content_type = message.get_content_type()
         if message.is_multipart():
@@ -130,7 +131,9 @@ def _build_meta(
                 disposition = str(part.get("Content-Disposition", ""))
                 if filename or "attachment" in disposition.lower():
                     has_attachments = True
-                    attachment_names.append(filename or "(unnamed attachment)")
+                    display_name = filename or "(unnamed attachment)"
+                    attachment_names.append(display_name)
+                    attachments.append(_hash_attachment(part, display_name, issues))
     except Exception as exc:
         issues.append(ParseIssue(field="body", detail=f"failed walking MIME parts: {exc!r}"))
 
@@ -151,11 +154,36 @@ def _build_meta(
         content_type=content_type,
         has_attachments=has_attachments,
         attachment_names=attachment_names,
+        attachments=attachments,
         parse_confidence=confidence,
         issues=issues,
         source_format=source_format,
         sha256=sha256,
     )
+
+
+def _hash_attachment(part: Message, display_name: str, issues: list[ParseIssue]) -> AttachmentInfo:
+    """SHA256 of an attachment's decoded bytes -- a forensic IOC, not just
+    display metadata. Never raises: an attachment that can't be decoded
+    (corrupt encoding, unsupported transfer encoding) still gets an
+    AttachmentInfo entry, just with a zero-length hash and a recorded issue,
+    rather than silently disappearing from the report."""
+    try:
+        payload = part.get_payload(decode=True)
+        if not isinstance(payload, bytes):
+            payload = b""
+        digest = hashlib.sha256(payload).hexdigest()
+        return AttachmentInfo(
+            filename=display_name,
+            content_type=part.get_content_type(),
+            size_bytes=len(payload),
+            sha256=digest,
+        )
+    except Exception as exc:
+        issues.append(ParseIssue(field="attachments", detail=f"failed hashing {display_name!r}: {exc!r}"))
+        return AttachmentInfo(
+            filename=display_name, content_type=None, size_bytes=0, sha256=hashlib.sha256(b"").hexdigest()
+        )
 
 
 def _split_from(message: Message) -> tuple[str | None, str | None]:

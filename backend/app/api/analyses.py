@@ -1,3 +1,4 @@
+import json
 import uuid
 from typing import Literal
 
@@ -6,6 +7,9 @@ from fastapi.responses import PlainTextResponse, Response
 from sqlalchemy.orm import Session
 
 from app import crud
+from app.attribution.export import build_csv, build_stix_bundle
+from app.attribution.ioc import extract_iocs
+from app.attribution.pdf_report import generate_pdf_report
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.forensics.render import render_text_report
@@ -19,6 +23,7 @@ from app.schemas.analysis import (
     BatchUploadResponse,
     SkippedUpload,
 )
+from app.schemas.attribution import AnalystNotesUpdate, IocListResponse
 from app.tasks import analyze_email_task
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
@@ -118,7 +123,7 @@ def get_analysis(analysis_id: uuid.UUID, db: Session = Depends(get_db)) -> Analy
 @router.get("/{analysis_id}/export")
 def export_analysis(
     analysis_id: uuid.UUID,
-    format: Literal["json", "txt", "eml"] = "json",
+    format: Literal["json", "txt", "eml", "pdf", "stix", "ioc-csv"] = "json",
     db: Session = Depends(get_db),
 ) -> Response:
     analysis = crud.get_analysis(db, analysis_id)
@@ -129,8 +134,8 @@ def export_analysis(
 
     # The original raw bytes are stored the moment a file is uploaded, so
     # this format is available regardless of analysis status -- unlike
-    # json/txt, it needs no ForensicReport (which only exists once
-    # analysis has completed).
+    # every other format below, it needs no ForensicReport (which only
+    # exists once analysis has completed).
     if format == "eml":
         headers = {"Content-Disposition": f'attachment; filename="{base_name}.eml"'}
         return Response(analysis.raw_bytes, media_type="message/rfc822", headers=headers)
@@ -145,9 +150,53 @@ def export_analysis(
         headers = {"Content-Disposition": f'attachment; filename="{base_name}_tva_report.txt"'}
         return PlainTextResponse(content, headers=headers)
 
+    if format == "pdf":
+        case_id = crud.case_id_for(analysis)
+        iocs = extract_iocs(report)
+        pdf_bytes = generate_pdf_report(
+            report, case_id=case_id, iocs=iocs, analyst_notes=analysis.analyst_notes
+        )
+        headers = {"Content-Disposition": f'attachment; filename="{case_id}_forensic_report.pdf"'}
+        return Response(pdf_bytes, media_type="application/pdf", headers=headers)
+
+    if format == "stix":
+        case_id = crud.case_id_for(analysis)
+        bundle = build_stix_bundle(extract_iocs(report), case_id=case_id)
+        headers = {"Content-Disposition": f'attachment; filename="{base_name}_stix_bundle.json"'}
+        return Response(json.dumps(bundle, indent=2), media_type="application/json", headers=headers)
+
+    if format == "ioc-csv":
+        csv_text = build_csv(extract_iocs(report))
+        headers = {"Content-Disposition": f'attachment; filename="{base_name}_iocs.csv"'}
+        return PlainTextResponse(csv_text, headers=headers, media_type="text/csv")
+
     content = report.model_dump_json(indent=2)
     headers = {"Content-Disposition": f'attachment; filename="{base_name}_tva_report.json"'}
     return Response(content, media_type="application/json", headers=headers)
+
+
+@router.get("/{analysis_id}/iocs", response_model=IocListResponse)
+def get_iocs(analysis_id: uuid.UUID, db: Session = Depends(get_db)) -> IocListResponse:
+    analysis = crud.get_analysis(db, analysis_id)
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="analysis not found")
+    if analysis.status != "complete":
+        raise HTTPException(status_code=409, detail=f"analysis is {analysis.status}, not complete yet")
+
+    report = crud.to_forensic_report(analysis)
+    return IocListResponse(case_id=crud.case_id_for(analysis), iocs=extract_iocs(report))
+
+
+@router.patch("/{analysis_id}/notes", response_model=AnalysisDetail)
+def update_analyst_notes(
+    analysis_id: uuid.UUID, body: AnalystNotesUpdate, db: Session = Depends(get_db)
+) -> AnalysisDetail:
+    analysis = crud.get_analysis(db, analysis_id)
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="analysis not found")
+    crud.update_analyst_notes(db, analysis, body.notes)
+    db.commit()
+    return crud.to_analysis_detail(analysis)
 
 
 def _validate_upload(raw: bytes, max_bytes: int) -> None:

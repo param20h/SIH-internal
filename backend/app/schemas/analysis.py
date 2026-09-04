@@ -8,6 +8,7 @@ from app.ai.models import AiSignals
 from app.forensics.models import (
     AuthenticationSummary,
     DomainIntel,
+    OriginAttribution,
     ParsedEmailMeta,
     RiskScore,
     Verdict,
@@ -74,6 +75,7 @@ class AnalysisSummary(BaseModel):
     anomaly_count: int
     highest_anomaly_severity: str | None
     phishing_probability: float | None
+    analyst_notes: str | None
     created_at: datetime
 
 
@@ -85,6 +87,7 @@ class AnalysisDetail(AnalysisSummary):
     risk: RiskScore
     sender_domain_intel: DomainIntel | None
     ai_signals: AiSignals
+    attribution: OriginAttribution
 
 
 class AnalysisListResponse(BaseModel):
