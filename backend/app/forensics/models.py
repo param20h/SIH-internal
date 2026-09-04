@@ -1,0 +1,123 @@
+"""Pydantic schemas for the deterministic forensics engine.
+
+These models are the contract between the parsing/analysis stages and
+everything downstream (API responses, CLI output, PDF export). Every field
+that feeds a verdict carries the raw evidence it was derived from — nothing
+here is allowed to be a bare, unexplained score.
+"""
+
+from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+AuthMechanism = Literal["spf", "dkim", "dmarc"]
+AuthResultValue = Literal[
+    "pass", "fail", "softfail", "neutral", "none", "temperror", "permerror", "policy", "unknown"
+]
+AnomalySeverity = Literal["info", "low", "medium", "high", "critical"]
+AnomalyType = Literal[
+    "negative_time_delta",
+    "impossible_timestamp",
+    "bogon_ip_in_path",
+    "hop_count_outlier",
+    "forged_internal_origin",
+    "missing_expected_field",
+    "large_timezone_jump",
+    "dkim_signature_expired",
+]
+
+
+class ParseIssue(BaseModel):
+    """A single problem encountered while parsing, kept even though parsing continued."""
+
+    field: str
+    detail: str
+
+
+class ParsedEmailMeta(BaseModel):
+    from_display_name: str | None = None
+    from_address: str | None = None
+    to_addresses: list[str] = Field(default_factory=list)
+    subject: str | None = None
+    date_raw: str | None = None
+    date_parsed: datetime | None = None
+    message_id: str | None = None
+    return_path: str | None = None
+    content_type: str | None = None
+    has_attachments: bool = False
+    attachment_names: list[str] = Field(default_factory=list)
+    parse_confidence: float = Field(ge=0.0, le=1.0)
+    issues: list[ParseIssue] = Field(default_factory=list)
+    source_format: Literal["eml", "msg"]
+    sha256: str
+
+
+class AuthResult(BaseModel):
+    mechanism: AuthMechanism
+    result: AuthResultValue
+    reason: str | None = None
+    domain: str | None = None
+    raw_segment: str
+
+
+class AuthenticationSummary(BaseModel):
+    spf: AuthResult | None = None
+    dkim: AuthResult | None = None
+    dmarc: AuthResult | None = None
+    source: Literal["authentication-results-header", "unavailable"]
+    raw_header: str | None = None
+    dkim_signature_present: bool = False
+    dkim_signature_expired: bool = False
+    dkim_expiry: datetime | None = None
+    dmarc_policy: Literal["none", "quarantine", "reject", "unknown"] = "unknown"
+
+
+class RelayHop(BaseModel):
+    sequence: int
+    raw_header: str
+    from_host: str | None = None
+    from_ip: str | None = None
+    by_host: str | None = None
+    protocol: str | None = None
+    timestamp_raw: str | None = None
+    timestamp: datetime | None = None
+    parse_confidence: float = Field(ge=0.0, le=1.0)
+
+    # Enrichment, filled in separately; always present but nullable so the
+    # deterministic chain reconstruction never depends on it.
+    asn: int | None = None
+    asn_org: str | None = None
+    country: str | None = None
+    city: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    enrichment_source: Literal["geolite2-local", "unavailable"] = "unavailable"
+    is_bogon: bool = False
+
+
+class Anomaly(BaseModel):
+    type: AnomalyType
+    severity: AnomalySeverity
+    hop_sequences: list[int]
+    summary: str
+    evidence: str
+
+
+class DomainIntel(BaseModel):
+    domain: str
+    registration_date: datetime | None = None
+    age_days: int | None = None
+    source: Literal["live", "cached", "unavailable"]
+    detail: str | None = None
+
+
+class ForensicReport(BaseModel):
+    filename: str
+    meta: ParsedEmailMeta
+    authentication: AuthenticationSummary
+    hops: list[RelayHop]
+    anomalies: list[Anomaly]
+    hop_count: int
+    sender_domain_intel: DomainIntel | None = None
+    generated_at: datetime

@@ -9,10 +9,21 @@ forensic dossier tracing where the message actually came from.
 
 ## Status
 
-**Phase 0 — Foundation.** Monorepo scaffold, Docker Compose stack, health
-endpoint, lint/type/test tooling, and a 20-file synthetic sample corpus. See
-[`data/samples/README.md`](data/samples/README.md) for what the corpus
-covers.
+**Phase 1 — Deterministic forensics engine.** Phase 0 (monorepo scaffold,
+Docker Compose stack, health endpoint, lint/type/test tooling, 20-file
+synthetic sample corpus — see [`data/samples/README.md`](data/samples/README.md))
+is done. Phase 1 adds the core, zero-ML forensics pipeline in
+[`backend/app/forensics/`](backend/app/forensics/): a crash-proof .eml/.msg
+parser with a parse-confidence score, SPF/DKIM/DMARC verdict extraction from
+the Authentication-Results trust chain, Received-header relay-chain
+reconstruction, and chain-level anomaly detection (negative time deltas,
+bogon IPs crossing an org boundary, forged/duplicated hops, hop-count
+outliers, expired DKIM signatures). Optional GeoLite2 and RDAP enrichment
+degrade gracefully offline. Try it:
+
+```bash
+docker compose run --rm api python -m app.forensics.cli /data/samples/13_forged_received_header_injected.eml
+```
 
 ## Architecture
 
