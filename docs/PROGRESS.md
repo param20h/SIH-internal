@@ -18,7 +18,7 @@ Status at a glance:
 | 3 | Frontend | done | `5e3346c`, `698c360` |
 | 4 | AI detection layer | done | `a049863` |
 | 5 | Attribution & evidence export | done | `49138ce` |
-| 6 | Demo hardening | done | `<pending>` |
+| 6 | Demo hardening | done | `2a0d521` |
 
 ---
 
@@ -640,7 +640,7 @@ doubt it *and* independent enrichment corroborates it.
 
 ## Phase 6 — Demo hardening
 
-**Commit:** `<pending>`
+**Commit:** `2a0d521`
 
 The four things this phase was scoped to, per the original brief:
 
