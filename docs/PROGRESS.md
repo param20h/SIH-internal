@@ -17,7 +17,7 @@ Status at a glance:
 | 2 | API + persistence | done | `a5bb0d0` |
 | 3 | Frontend | done | `5e3346c`, `698c360` |
 | 4 | AI detection layer | done | `a049863` |
-| 5 | Attribution & evidence export | done | `<pending>` |
+| 5 | Attribution & evidence export | done | `49138ce` |
 | 6 | Demo hardening | not started | — |
 
 ---
@@ -527,7 +527,7 @@ second, nowhere near the actual 10s/email budget.
 
 ## Phase 5 — Attribution & evidence export
 
-**Commit:** `<pending>`
+**Commit:** `49138ce`
 
 Built the four sub-systems the brief specifies for this phase:
 
