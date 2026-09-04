@@ -15,7 +15,7 @@ Status at a glance:
 | 0 | Foundation | done | `505cb1b` |
 | 1 | Deterministic forensics engine | done | `efcf26b` |
 | 2 | API + persistence | done | `a5bb0d0` |
-| 3 | Frontend | done | `5e3346c` + frontend commit below |
+| 3 | Frontend | done | `5e3346c`, `698c360` |
 | 4 | AI detection layer | not started | — |
 | 5 | Attribution & evidence export | not started | — |
 | 6 | Demo hardening | not started | — |
@@ -245,8 +245,8 @@ showed up once real, timestamp-colliding data existed to sort over.
 
 ## Phase 3 — Frontend
 
-**Commit:** `5e3346c` (backend scoring engine, built first — see below), plus
-the frontend UI commit.
+**Commit:** `5e3346c` (backend scoring engine, built first — see below), then
+`698c360` (frontend UI).
 
 ### Backend portion: the scoring engine
 
