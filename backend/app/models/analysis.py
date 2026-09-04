@@ -46,6 +46,14 @@ class Analysis(Base):
     dmarc_policy: Mapped[str] = mapped_column(String(16), default="unknown")
     dkim_signature_expired: Mapped[bool] = mapped_column(default=False)
 
+    # risk_score/verdict are normalized for filtering & stats; the full
+    # explainable factor breakdown is not persisted separately -- it's a
+    # pure function of authentication_json + the anomalies table, so it's
+    # recomputed on read (see crud.to_analysis_detail) rather than stored
+    # twice.
+    risk_score: Mapped[int] = mapped_column(default=0, index=True)
+    verdict: Mapped[str] = mapped_column(String(16), default="clean", index=True)
+
     hop_count: Mapped[int] = mapped_column(default=0)
     anomaly_count: Mapped[int] = mapped_column(default=0)
     highest_anomaly_severity: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)

@@ -15,7 +15,7 @@ Status at a glance:
 | 0 | Foundation | done | `505cb1b` |
 | 1 | Deterministic forensics engine | done | `efcf26b` |
 | 2 | API + persistence | done | `a5bb0d0` |
-| 3 | Frontend | not started | — |
+| 3 | Frontend | in progress (scoring engine added first) | — |
 | 4 | AI detection layer | not started | — |
 | 5 | Attribution & evidence export | not started | — |
 | 6 | Demo hardening | not started | — |
@@ -240,3 +240,76 @@ consecutive pages could return an overlapping row. Fixed by adding `id`
 as a secondary sort key. Worth calling out because it's exactly the kind
 of bug that a from-empty test database would never have caught — it only
 showed up once real, timestamp-colliding data existed to sort over.
+
+---
+
+## Phase 3 — Frontend (scoring engine added first)
+
+**Commit:** `<pending>`
+
+Phase 3's UI spec calls for a "verdict banner with 0-100 risk score" and
+an "indicator breakdown panel (each row = name, weight, evidence
+snippet)" — but no risk score existed yet; that was formally Phase 4's
+job ("fuse all signals into the explainable weighted risk score").
+Building the frontend first would have meant either faking a number or
+shipping a banner with nothing to show. Since the project's hard
+constraint #3 ("every verdict must be EXPLAINABLE... each contributing
+indicator shows its name, weight, and evidence") isn't phase-scoped —
+it's a standing requirement — a small scoring engine was built first:
+
+- `app/scoring/weights.yaml` — the actual weight config (a real YAML
+  file, not a hardcoded dict), covering SPF/DKIM/DMARC results and
+  relay-chain anomaly severities. Every weight in it becomes a named
+  `ScoreFactor` in the API response with its evidence attached.
+- `app/scoring/engine.py` — `compute_risk_score(authentication,
+  anomalies) -> RiskScore`, a pure function summing weighted factors,
+  clamping to 0-100, and mapping to a `clean`/`suspicious`/`malicious`
+  verdict via configurable thresholds.
+- Wired into `generate_report()` (so `risk` is now a required field on
+  `ForensicReport`), into the DB schema (`risk_score`/`verdict` columns,
+  migration `e6db82b15a7e`), and into every response shape (API detail,
+  CLI/text export, JSON export).
+
+This is deliberately **not** a placeholder to be thrown away in Phase 4.
+Only Phase 1's deterministic signals feed it today; Phase 4 adds the
+ML-derived signals (phishing classifier, lookalike-domain, AI-text
+detection, URL analysis) into this same weighted-sum framework as
+additional config entries, not a replacement for it.
+
+**A calibration gap found by actually running the numbers, not just by
+design review:** the first weight pass scored sample 20 (full SPF+DKIM+
+DMARC failure against a published `p=reject` policy — deliberately built
+as the corpus's clearest-cut "should never reach an inbox" case) at only
+55/100, landing in "suspicious" rather than "malicious." A full triple
+auth failure against a reject policy essentially never happens for
+legitimate mail and is the strongest signal this deterministic-only
+layer can produce before Phase 4 adds more — so the weights were
+recalibrated (SPF/DKIM fail 15→20, DMARC-fail-by-policy 8/15/25→10/20/35)
+so that combination clears the "malicious" threshold on its own (scores
+75). Verified across the corpus via the CLI: clean mail scores 0, a
+single strong signal (DMARC fail on a reject-policy spoofed-bank sample)
+lands at 63/"suspicious", and both full-failure samples land at
+75-83/"malicious".
+
+**Verified:** 157/157 tests pass (10 new scoring-engine unit tests
+including one that explicitly guards against double-counting the expired
+DKIM signal, plus corpus assertions), `ruff`/`mypy --strict` clean.
+
+### Decisions made this phase (backend portion)
+
+**The risk breakdown isn't persisted as its own column/blob.** `risk_score`
+and `verdict` are normalized `Analysis` columns (needed for filtering and
+stats), but the full explainable factor list is recomputed on read from
+`authentication_json` + the `anomalies` table via `compute_risk_score()`
+rather than stored a second time. It's a pure function of data already
+persisted, so storing it again would just be a second copy that could
+drift out of sync -- recomputing costs nothing measurable and is
+guaranteed correct by construction.
+
+**The migration backfills existing rows with `server_default`, not a
+bare `NOT NULL`.** Autogenerate produced a `NOT NULL` column with no
+default, which fails against a table that already has rows (my dev
+database did, from Phase 2's live smoke-testing). Added
+`server_default='0'` / `'clean'` by hand -- existing pre-scoring rows get
+scored 0/"clean" until re-analyzed, which is honest: there's no basis to
+claim anything else for data that predates the column.

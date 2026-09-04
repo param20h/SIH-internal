@@ -17,6 +17,7 @@ def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
     total = db.scalar(select(func.count()).select_from(Analysis)) or 0
 
     status_breakdown = _count_by(db, Analysis.status)
+    verdict_breakdown = _count_by(db, Analysis.verdict)
     spf_breakdown = _count_by(db, Analysis.spf_result)
     dkim_breakdown = _count_by(db, Analysis.dkim_result)
     dmarc_breakdown = _count_by(db, Analysis.dmarc_result)
@@ -31,6 +32,7 @@ def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
     return StatsResponse(
         total_analyses=total,
         status_breakdown=status_breakdown,
+        verdict_breakdown=verdict_breakdown,
         spf_breakdown=spf_breakdown,
         dkim_breakdown=dkim_breakdown,
         dmarc_breakdown=dmarc_breakdown,

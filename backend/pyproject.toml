@@ -19,6 +19,7 @@ dependencies = [
     "extract-msg>=0.54.0",
     "geoip2>=4.8.0",
     "python-multipart>=0.0.12",
+    "pyyaml>=6.0.2",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,7 @@ dev = [
     "httpx>=0.27.0",
     "ruff>=0.7.0",
     "mypy>=1.13.0",
+    "types-PyYAML>=6.0.12",
 ]
 
 [build-system]

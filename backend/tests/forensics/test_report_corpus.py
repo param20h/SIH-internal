@@ -43,6 +43,9 @@ def test_01_clean_newsletter_passes_all_three() -> None:
     assert r.authentication.dkim is not None and r.authentication.dkim.result == "pass"
     assert r.authentication.dmarc is not None and r.authentication.dmarc.result == "pass"
     assert not any(a.severity in ("high", "critical") for a in r.anomalies)
+    assert r.risk.verdict == "clean"
+    assert r.risk.score == 0
+    assert r.risk.factors == []
 
 
 def test_02_clean_internal_memo_passes_all_three() -> None:
@@ -140,6 +143,9 @@ def test_20_dmarc_reject_full_failure() -> None:
     assert r.authentication.dkim is not None and r.authentication.dkim.result == "fail"
     assert r.authentication.dmarc is not None and r.authentication.dmarc.result == "fail"
     assert r.authentication.dmarc_policy == "reject"
+    assert r.risk.verdict == "malicious"
+    assert r.risk.score >= 50
+    assert len(r.risk.factors) == 3  # spf fail, dkim fail, dmarc fail(reject)
 
 
 def test_report_generation_stays_well_under_ten_seconds() -> None:

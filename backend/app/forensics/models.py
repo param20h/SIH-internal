@@ -104,6 +104,30 @@ class Anomaly(BaseModel):
     evidence: str
 
 
+ScoreCategory = Literal["authentication", "relay_chain"]
+Verdict = Literal["clean", "suspicious", "malicious"]
+
+
+class ScoreFactor(BaseModel):
+    """One named, weighted contribution to the risk score.
+
+    The hard constraint this exists to satisfy: no black-box score. Every
+    point in RiskScore.score must trace back to one of these, each
+    carrying the raw evidence that justified it.
+    """
+
+    name: str
+    weight: int
+    evidence: str
+    category: ScoreCategory
+
+
+class RiskScore(BaseModel):
+    score: int = Field(ge=0, le=100)
+    verdict: Verdict
+    factors: list[ScoreFactor]
+
+
 class DomainIntel(BaseModel):
     domain: str
     registration_date: datetime | None = None
@@ -119,5 +143,6 @@ class ForensicReport(BaseModel):
     hops: list[RelayHop]
     anomalies: list[Anomaly]
     hop_count: int
+    risk: RiskScore
     sender_domain_intel: DomainIntel | None = None
     generated_at: datetime

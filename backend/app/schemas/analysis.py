@@ -4,7 +4,13 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from app.forensics.models import AuthenticationSummary, DomainIntel, ParsedEmailMeta
+from app.forensics.models import (
+    AuthenticationSummary,
+    DomainIntel,
+    ParsedEmailMeta,
+    RiskScore,
+    Verdict,
+)
 
 AnalysisStatus = Literal["pending", "processing", "complete", "failed"]
 
@@ -61,6 +67,8 @@ class AnalysisSummary(BaseModel):
     dmarc_result: str | None
     dmarc_policy: str
     dkim_signature_expired: bool
+    risk_score: int
+    verdict: Verdict
     hop_count: int
     anomaly_count: int
     highest_anomaly_severity: str | None
@@ -72,6 +80,7 @@ class AnalysisDetail(AnalysisSummary):
     authentication: AuthenticationSummary
     hops: list[HopOut]
     anomalies: list[AnomalyOut]
+    risk: RiskScore
     sender_domain_intel: DomainIntel | None
 
 
@@ -101,6 +110,7 @@ class BatchUploadResponse(BaseModel):
 class StatsResponse(BaseModel):
     total_analyses: int
     status_breakdown: dict[str, int]
+    verdict_breakdown: dict[str, int]
     spf_breakdown: dict[str, int]
     dkim_breakdown: dict[str, int]
     dmarc_breakdown: dict[str, int]

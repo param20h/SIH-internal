@@ -1,0 +1,50 @@
+# TVA risk-scoring weights -- the "Sacred Timeline" baseline.
+#
+# Edit this file to retune the score; nothing in app/scoring/engine.py is
+# hardcoded. Every weight here becomes a named ScoreFactor in the API
+# response, with the raw evidence that triggered it -- there is no
+# unexplained number anywhere in the pipeline.
+#
+# Only Phase 1's deterministic signals (SPF/DKIM/DMARC, relay-chain
+# anomalies) feed this today. Phase 4 adds ML-derived signals (phishing
+# classifier, lookalike-domain, AI-text detection, URL analysis) into this
+# same weighted-sum framework as additional entries here, not a
+# replacement for it.
+
+authentication:
+  spf:
+    fail: 20
+    softfail: 8
+    neutral: 3
+    temperror: 3
+    permerror: 5
+  dkim:
+    fail: 20
+    none: 8
+  dmarc:
+    # A full SPF+DKIM+DMARC failure against a published p=reject policy
+    # (20+20+35=75) is calibrated to clear the "malicious" threshold on
+    # its own -- that combination essentially never happens for
+    # legitimate mail, and is the strongest signal this deterministic-only
+    # layer can produce before Phase 4 adds ML-derived signals into the
+    # same sum.
+    fail_by_policy:
+      reject: 35
+      quarantine: 20
+      none: 10
+      unknown: 5
+
+# Note: an expired DKIM signature is not scored here -- generate_report()
+# already turns it into a "medium" severity Anomaly (see
+# forensics/report.py), which is scored by anomaly_severity below. Scoring
+# it again here would double-count the same underlying fact.
+anomaly_severity:
+  critical: 30
+  high: 20
+  medium: 10
+  low: 3
+  info: 0
+
+verdict_thresholds:
+  malicious: 70
+  suspicious: 30

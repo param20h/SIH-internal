@@ -17,6 +17,7 @@ def render_text_report(report: ForensicReport) -> str:
     _section(lines, "TVA FORENSIC REPORT")
     lines.append(f"file:              {report.filename}")
     lines.append(f"sha256:            {m.sha256}")
+    lines.append(f"verdict:           {report.risk.verdict.upper()}  (risk score {report.risk.score}/100)")
     lines.append(f"parse confidence:  {m.parse_confidence:.0%}")
     if m.issues:
         lines.append(f"parse issues:      {len(m.issues)}")
@@ -67,6 +68,13 @@ def render_text_report(report: ForensicReport) -> str:
     for anomaly in sorted(report.anomalies, key=lambda a: _SEVERITY_ORDER.get(a.severity, 9)):
         lines.append(f"  [{anomaly.severity.upper():8s}] {anomaly.type}: {anomaly.summary}")
         lines.append(f"             evidence: {anomaly.evidence}")
+
+    _section(lines, f"RISK SCORE: {report.risk.score}/100 -- {report.risk.verdict.upper()}")
+    if not report.risk.factors:
+        lines.append("no contributing factors -- nothing raised the score above zero")
+    for factor in report.risk.factors:
+        lines.append(f"  +{factor.weight:<3d} [{factor.category}] {factor.name}")
+        lines.append(f"             evidence: {factor.evidence}")
 
     if report.sender_domain_intel:
         _section(lines, "SENDER DOMAIN INTEL")

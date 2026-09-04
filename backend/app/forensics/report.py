@@ -15,6 +15,7 @@ from app.forensics.models import Anomaly, DomainIntel, ForensicReport
 from app.forensics.parser import parse_email_bytes
 from app.forensics.rdap import lookup_domain_age
 from app.forensics.relay_chain import parse_relay_chain
+from app.scoring.engine import compute_risk_score
 
 
 def generate_report(
@@ -38,6 +39,7 @@ def generate_report(
         anomalies.append(_dkim_expired_anomaly(authentication.dkim_expiry))
 
     sender_domain_intel = _lookup_sender_domain(meta.from_address, enable_network_enrichment)
+    risk = compute_risk_score(authentication, anomalies)
 
     return ForensicReport(
         filename=filename,
@@ -46,6 +48,7 @@ def generate_report(
         hops=hops,
         anomalies=anomalies,
         hop_count=len(hops),
+        risk=risk,
         sender_domain_intel=sender_domain_intel,
         generated_at=datetime.now(tz=UTC),
     )

@@ -23,6 +23,7 @@ from app.forensics.models import (
 )
 from app.models.analysis import Analysis, Anomaly, Hop
 from app.schemas.analysis import AnalysisDetail, AnalysisSummary, AnomalyOut, HopOut
+from app.scoring.engine import compute_risk_score
 
 _SEVERITY_RANK: dict[str, int] = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 
@@ -66,6 +67,8 @@ def complete_analysis(db: Session, analysis: Analysis, report: ForensicReport) -
     analysis.dmarc_result = auth.dmarc.result if auth.dmarc else None
     analysis.dmarc_policy = auth.dmarc_policy
     analysis.dkim_signature_expired = auth.dkim_signature_expired
+    analysis.risk_score = report.risk.score
+    analysis.verdict = report.risk.verdict
     analysis.hop_count = report.hop_count
     analysis.anomaly_count = len(report.anomalies)
     analysis.highest_anomaly_severity = highest_severity
@@ -174,14 +177,20 @@ def to_analysis_detail(analysis: Analysis) -> AnalysisDetail:
     from_attributes for those); meta/authentication/sender_domain_intel are
     stored as JSONB and re-validated back into their canonical forensics
     models here since the ORM column names (``meta_json``) don't match the
-    response field names (``meta``) that from_attributes would need.
+    response field names (``meta``) that from_attributes would need. The
+    risk breakdown isn't stored separately -- it's a pure function of
+    authentication + anomalies, so it's recomputed here rather than kept
+    in sync with a second copy.
     """
+    authentication = AuthenticationSummary.model_validate(analysis.authentication_json)
+    forensic_anomalies = _forensic_anomalies(analysis)
     return AnalysisDetail(
         **AnalysisSummary.model_validate(analysis).model_dump(),
         meta=ParsedEmailMeta.model_validate(analysis.meta_json),
-        authentication=AuthenticationSummary.model_validate(analysis.authentication_json),
+        authentication=authentication,
         hops=[HopOut.model_validate(hop) for hop in analysis.hops],
         anomalies=[AnomalyOut.model_validate(a) for a in analysis.anomalies],
+        risk=compute_risk_score(authentication, forensic_anomalies),
         sender_domain_intel=(
             DomainIntel.model_validate(analysis.sender_domain_intel_json)
             if analysis.sender_domain_intel_json
@@ -197,10 +206,12 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
     renderers the CLI uses -- so a report looks identical whether it was
     just generated or reloaded from the database days later.
     """
+    authentication = AuthenticationSummary.model_validate(analysis.authentication_json)
+    forensic_anomalies = _forensic_anomalies(analysis)
     return ForensicReport(
         filename=analysis.filename,
         meta=ParsedEmailMeta.model_validate(analysis.meta_json),
-        authentication=AuthenticationSummary.model_validate(analysis.authentication_json),
+        authentication=authentication,
         hops=[
             RelayHop(
                 sequence=hop.sequence,
@@ -223,17 +234,9 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
             )
             for hop in analysis.hops
         ],
-        anomalies=[
-            AnomalyReport(
-                type=anomaly.type,
-                severity=anomaly.severity,
-                hop_sequences=anomaly.hop_sequences,
-                summary=anomaly.summary,
-                evidence=anomaly.evidence,
-            )
-            for anomaly in analysis.anomalies
-        ],
+        anomalies=forensic_anomalies,
         hop_count=analysis.hop_count,
+        risk=compute_risk_score(authentication, forensic_anomalies),
         sender_domain_intel=(
             DomainIntel.model_validate(analysis.sender_domain_intel_json)
             if analysis.sender_domain_intel_json
@@ -241,6 +244,19 @@ def to_forensic_report(analysis: Analysis) -> ForensicReport:
         ),
         generated_at=analysis.created_at,
     )
+
+
+def _forensic_anomalies(analysis: Analysis) -> list[AnomalyReport]:
+    return [
+        AnomalyReport(
+            type=anomaly.type,
+            severity=anomaly.severity,
+            hop_sequences=anomaly.hop_sequences,
+            summary=anomaly.summary,
+            evidence=anomaly.evidence,
+        )
+        for anomaly in analysis.anomalies
+    ]
 
 
 def _highest_severity(anomalies: Sequence[AnomalyReport]) -> str | None:
