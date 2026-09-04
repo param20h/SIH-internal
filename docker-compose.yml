@@ -38,6 +38,8 @@ services:
       - ./backend/app:/app/app
       - ./backend/tests:/app/tests
       - ./backend/pyproject.toml:/app/pyproject.toml
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
       - ./data:/data
     depends_on:
       postgres:

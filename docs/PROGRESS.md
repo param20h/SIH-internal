@@ -14,7 +14,7 @@ Status at a glance:
 |---|---|---|---|
 | 0 | Foundation | done | `505cb1b` |
 | 1 | Deterministic forensics engine | done | `efcf26b` |
-| 2 | API + persistence | in progress | — |
+| 2 | API + persistence | done | `<pending>` |
 | 3 | Frontend | not started | — |
 | 4 | AI detection layer | not started | — |
 | 5 | Attribution & evidence export | not started | — |
@@ -118,6 +118,106 @@ tests no longer requires an image rebuild to pick them up.
 
 ---
 
-## Phase 2 — API + persistence (in progress)
+## Phase 2 — API + persistence
 
-Not yet complete — this section is updated when the phase finishes.
+**Commit:** `<pending>`
+
+Added the REST API and Postgres persistence layer:
+
+- `app/models/analysis.py` — SQLAlchemy models: `Analysis` (normalized
+  top-level fields for filtering/stats, plus `meta_json`/
+  `authentication_json` JSONB columns for full fidelity), `Hop` and
+  `Anomaly` (fully normalized, FK'd to `Analysis`, cascade-deleted with
+  it). An IOC table is deliberately not added yet -- see "decisions"
+  below.
+- `alembic/` — proper migration setup (`env.py` reads the live
+  `DATABASE_URL` from `app.core.config`, autogenerate diffs against
+  `Base.metadata`). Initial migration generated and applied; `make
+  migrate` / `make makemigration m="..."` wrap the common commands.
+- `app/crud.py` — the persistence layer bridging `ForensicReport`
+  (Phase 1's domain model) and DB rows in both directions:
+  `create_completed_analysis` / `complete_analysis` / `fail_analysis` for
+  writes, `to_analysis_detail` for the API response shape,
+  `to_forensic_report` for reassembling the exact same domain model the
+  CLI renders, so a report looks identical whether it was just generated
+  or reloaded from the database days later.
+- `app/api/analyses.py` — `POST /analyses` (single upload, analyzed
+  synchronously -- Phase 1's corpus timing test showed this takes well
+  under a second per email), `POST /analyses/batch` (multi-file upload,
+  each queued as a Celery job), `GET /analyses` (paginated, filterable by
+  status/spf/dkim/dmarc), `GET /analyses/{id}`, and
+  `GET /analyses/{id}/export?format=json|txt`.
+- `app/api/stats.py` — `GET /stats`: totals, status/spf/dkim/dmarc
+  breakdowns, anomaly type/severity breakdowns, last-24h count.
+- `app/tasks.py` — the Celery task backing batch uploads; marks the
+  placeholder row `failed` with the exception detail rather than losing
+  the job if analysis somehow raises (Phase 1's `generate_report` is
+  designed never to, but the task layer doesn't get to assume that).
+- `app/forensics/render.py` — extracted the CLI's human-readable
+  rendering into a shared function so the CLI and the API's `?format=txt`
+  export can never drift out of sync with each other.
+
+**Verified:** 147/147 tests pass (added CRUD unit tests, API endpoint
+tests via a transactionally-isolated `TestClient`, and a dedicated Celery
+task test), `ruff`/`mypy --strict` clean. Also smoke-tested against the
+real running stack (not just the test suite): uploaded a sample via curl,
+confirmed the DB row and response shape; submitted a two-file batch,
+confirmed the worker picked both up from Redis and completed them
+asynchronously; confirmed `/stats` aggregates correctly across everything
+uploaded so far; confirmed `/docs` (OpenAPI) lists all the new routes.
+
+### Decisions made this phase
+
+**Single upload runs synchronously; only batch uploads go through
+Celery.** The brief's own phrasing ("Async job pipeline via Celery for
+batch uploads") implies this split, and Phase 1's timing test showed the
+whole 20-file corpus processes in under 4 seconds combined -- so making a
+single upload wait on a queue round-trip would be slower than just
+running it inline, for no benefit.
+
+**Raw email bytes are stored as Postgres `bytea`, not a shared
+filesystem path.** Both the `api` and `worker` containers already share
+the same Postgres; storing the upload there (not on a separately-mounted
+volume) means there's exactly one place a queued job needs to look, no
+extra volume wiring, and no cleanup-orphaned-files problem.
+
+**Alembic manages the schema; no `Base.metadata.create_all()` magic in
+app startup.** Two sources of truth for schema (an ad-hoc create-all
+*and* tracked migrations) invites drift. Alembic was already a listed
+dependency, so this is the "boring, proven" choice, not extra scope.
+Tests still use `create_all()` in a fixture, but that's a separate,
+narrower concern (get *some* schema in place for an ephemeral test run,
+optionally without alembic installed in CI) that doesn't conflict with
+alembic being authoritative for real deployments.
+
+**No IOC table yet.** The brief lists "analyses, hops, indicators, IOCs"
+as what the Phase 2 schema should hold, but nothing before Phase 5 (IOC
+extraction: IPs, domains, URLs, attachment SHA256, sender addresses)
+populates one. Adding it now would be schema nobody uses -- a violation
+of the project's own "don't design for hypothetical future requirements"
+engineering rule. Alembic makes adding it later a small, ordinary
+migration, not a redesign.
+
+**API tests run against the real Postgres service, not a separate test
+database, using per-test transaction rollback for isolation.** Each test
+opens its own connection, begins an outer transaction, and binds its
+`Session` to that connection with SQLAlchemy 2.0's
+`join_transaction_mode="create_savepoint"` -- so even though the CRUD
+layer calls `session.commit()` for real (as it does in production), that
+only releases a SAVEPOINT; the outer transaction (and everything the test
+did) is rolled back at teardown. FastAPI's `get_db` dependency is
+overridden per-test to hand out that same session, so `TestClient`
+requests hit the isolated transaction too. This avoids standing up a
+second database service just for tests while still guaranteeing nothing
+a test does ever lands in real dev data. The one exception is
+`test_tasks.py`, which tests the Celery task directly: the task opens its
+own `SessionLocal()` (a different connection than the test fixture's), so
+that test talks to the real database directly and cleans up explicitly
+instead.
+
+**Known limitation, noted rather than fixed:** endpoints use a
+synchronous SQLAlchemy `Session` called directly from `async def` route
+handlers, which blocks the event loop during DB I/O. Acceptable at
+hackathon-demo concurrency; a fully async stack (async psycopg +
+`AsyncSession`) would be the correct fix for real production load, but is
+disproportionate scope for this project's actual requirements right now.

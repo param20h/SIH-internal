@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     geolite2_city_db_path: str = "/data/geoip/GeoLite2-City.mmdb"
+    geolite2_asn_db_path: str = "/data/geoip/GeoLite2-ASN.mmdb"
 
     upload_max_bytes: int = 25 * 1024 * 1024
     max_analysis_seconds: int = 10

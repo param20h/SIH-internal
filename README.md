@@ -13,20 +13,33 @@ See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the full phase-by-phase build
 log — what was built, real bugs found while verifying (not just what was
 planned), and every design tradeoff decided along the way.
 
-**Phase 1 — Deterministic forensics engine.** Phase 0 (monorepo scaffold,
-Docker Compose stack, health endpoint, lint/type/test tooling, 20-file
-synthetic sample corpus — see [`data/samples/README.md`](data/samples/README.md))
-is done. Phase 1 adds the core, zero-ML forensics pipeline in
-[`backend/app/forensics/`](backend/app/forensics/): a crash-proof .eml/.msg
-parser with a parse-confidence score, SPF/DKIM/DMARC verdict extraction from
-the Authentication-Results trust chain, Received-header relay-chain
-reconstruction, and chain-level anomaly detection (negative time deltas,
-bogon IPs crossing an org boundary, forged/duplicated hops, hop-count
-outliers, expired DKIM signatures). Optional GeoLite2 and RDAP enrichment
-degrade gracefully offline. Try it:
+**Phase 2 — API + persistence.** Phase 0 (monorepo scaffold, Docker Compose
+stack, health endpoint, lint/type/test tooling, 20-file synthetic sample
+corpus — see [`data/samples/README.md`](data/samples/README.md)) and Phase 1
+(the deterministic, zero-ML forensics pipeline in
+[`backend/app/forensics/`](backend/app/forensics/): crash-proof .eml/.msg
+parsing, SPF/DKIM/DMARC verdict extraction, Received-header relay-chain
+reconstruction, and chain-level anomaly detection) are done. Phase 2 adds a
+REST API and Postgres persistence on top: upload-and-analyze, batch upload
+via a Celery queue, list/filter/get, JSON/text export, and aggregate stats.
+Try the CLI directly:
 
 ```bash
 docker compose run --rm api python -m app.forensics.cli /data/samples/13_forged_received_header_injected.eml
+```
+
+Or the API, once the stack is up:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/analyses \
+  -F "file=@data/samples/13_forged_received_header_injected.eml;type=message/rfc822"
+```
+
+Interactive OpenAPI docs are at `http://localhost:8000/docs`. First run the
+database migration:
+
+```bash
+make migrate
 ```
 
 ## Architecture
@@ -48,6 +61,7 @@ spine of every verdict. Machine learning is strictly additive on top of it.
 
 ```bash
 docker compose up --build
+make migrate   # applies the Postgres schema (one-time / after a schema change)
 ```
 
 - API: http://localhost:8000 (docs at `/docs`, health at `/health`)
@@ -67,10 +81,12 @@ docker/    Shared infra config
 ## Development
 
 ```bash
-make up          # docker compose up --build
-make test        # run the backend test suite inside the api container
-make lint        # ruff
-make typecheck   # mypy --strict
+make up             # docker compose up --build
+make test           # run the backend test suite inside the api container
+make lint           # ruff
+make typecheck      # mypy --strict
+make migrate        # apply Alembic migrations
+make makemigration m="add foo column"   # autogenerate a new migration
 ```
 
 ## Offline operation
