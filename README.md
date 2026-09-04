@@ -13,16 +13,18 @@ See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the full phase-by-phase build
 log — what was built, real bugs found while verifying (not just what was
 planned), and every design tradeoff decided along the way.
 
-**Phase 2 — API + persistence.** Phase 0 (monorepo scaffold, Docker Compose
-stack, health endpoint, lint/type/test tooling, 20-file synthetic sample
-corpus — see [`data/samples/README.md`](data/samples/README.md)) and Phase 1
-(the deterministic, zero-ML forensics pipeline in
-[`backend/app/forensics/`](backend/app/forensics/): crash-proof .eml/.msg
-parsing, SPF/DKIM/DMARC verdict extraction, Received-header relay-chain
-reconstruction, and chain-level anomaly detection) are done. Phase 2 adds a
-REST API and Postgres persistence on top: upload-and-analyze, batch upload
-via a Celery queue, list/filter/get, JSON/text export, and aggregate stats.
-Try the CLI directly:
+**Phase 3 — Frontend.** Phases 0–2 are done: monorepo + Docker Compose
+foundation, the deterministic zero-ML forensics engine in
+[`backend/app/forensics/`](backend/app/forensics/) (crash-proof .eml/.msg
+parsing, SPF/DKIM/DMARC verdict extraction, relay-chain reconstruction and
+anomaly detection), an explainable weighted risk-scoring engine
+([`backend/app/scoring/`](backend/app/scoring/)), and a REST API + Postgres
+persistence layer. Phase 3 adds the React/TypeScript web app: drag-and-drop
+or paste-raw-headers upload, an analysis view with a verdict banner,
+weighted indicator breakdown ("Miss Minutes"), an offline-bundled relay-path
+world map, a raw-header viewer with anomalous lines highlighted, a Nexus
+Events list, and a stats dashboard. Open `http://localhost:5173` once the
+stack is up, or try the CLI directly:
 
 ```bash
 docker compose run --rm api python -m app.forensics.cli /data/samples/13_forged_received_header_injected.eml

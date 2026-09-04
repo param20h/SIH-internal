@@ -15,7 +15,7 @@ Status at a glance:
 | 0 | Foundation | done | `505cb1b` |
 | 1 | Deterministic forensics engine | done | `efcf26b` |
 | 2 | API + persistence | done | `a5bb0d0` |
-| 3 | Frontend | in progress (scoring engine added first) | — |
+| 3 | Frontend | done | `5e3346c` + frontend commit below |
 | 4 | AI detection layer | not started | — |
 | 5 | Attribution & evidence export | not started | — |
 | 6 | Demo hardening | not started | — |
@@ -243,9 +243,12 @@ showed up once real, timestamp-colliding data existed to sort over.
 
 ---
 
-## Phase 3 — Frontend (scoring engine added first)
+## Phase 3 — Frontend
 
-**Commit:** `<pending>`
+**Commit:** `5e3346c` (backend scoring engine, built first — see below), plus
+the frontend UI commit.
+
+### Backend portion: the scoring engine
 
 Phase 3's UI spec calls for a "verdict banner with 0-100 risk score" and
 an "indicator breakdown panel (each row = name, weight, evidence
@@ -313,3 +316,97 @@ database did, from Phase 2's live smoke-testing). Added
 `server_default='0'` / `'clean'` by hand -- existing pre-scoring rows get
 scored 0/"clean" until re-analyzed, which is honest: there's no basis to
 claim anything else for data that predates the column.
+
+### Frontend portion
+
+Built out `frontend/src/`: a typed API client (`lib/types.ts` mirrors the
+backend Pydantic schemas field-for-field, `lib/api.ts` wraps every
+endpoint), hand-rolled shadcn-style UI primitives (`components/ui/` --
+Badge/Card/Button/Spinner built directly rather than via the shadcn CLI,
+which needs interactive prompts this environment can't drive), and four
+routes: Upload (drag-and-drop plus a paste-raw-headers mode -- pasted
+text becomes a `File` blob and goes through the exact same upload
+endpoint as a real `.eml`), the Nexus Events list, the Analysis detail
+page, and the Dashboard.
+
+The analysis page composes: a verdict banner with an animated SVG radial
+gauge for the 0-100 score; the "Miss Minutes" indicator panel (product
+in-joke, subtle per the style brief) listing every `ScoreFactor` with its
+weight and expandable evidence, plus a full anomaly list below it so
+even zero-weight (`info` severity) findings stay visible; a relay-path
+world map; a hop table; and a raw-header viewer.
+
+**The map ("the money shot") needed real work to stay offline-compliant.**
+`react-simple-maps`' own docs default to fetching world topology from a
+CDN URL at runtime -- a hard violation of the offline-operation
+constraint. Used the `world-atlas` npm package instead (plain topojson
+data, `import ... from "world-atlas/countries-110m.json?url"`), which
+Vite bundles as a same-origin static asset at build time. No external
+network call happens at runtime; a viewer with no internet gets the same
+map a viewer with internet does.
+
+**The map degrades honestly when GeoIP data is absent, which it is by
+default.** No GeoLite2-City.mmdb license was available in this session
+(that requires the user's own free MaxMind account -- see
+`data/geoip/README.md`), so every hop in the corpus shows
+`enrichment_source: "unavailable"` and the map renders an explicit empty
+state explaining why, rather than silently showing nothing or, worse,
+fabricating coordinates. The relay chain itself (hop table, anomaly
+detection) is unaffected and fully populated regardless -- geolocation is
+enrichment, not something the deterministic analysis depends on. This was
+verified live in the browser, not assumed.
+
+**The raw-header viewer fetches the actual original bytes, not a
+reconstruction.** Initially planned to rebuild a synthetic header block
+from already-exposed fields (hop raw headers, Authentication-Results),
+but the DB already stores the complete original upload
+(`Analysis.raw_bytes`) and nothing exposed it. Extended the export
+endpoint with `format=eml` (returns the original bytes verbatim,
+available regardless of analysis status since raw bytes exist before
+analysis even runs, unlike `json`/`txt` which need a finished
+`ForensicReport`) rather than have the UI show an approximation of the
+source when the real thing was one small backend change away.
+
+**No frontend test framework was added this phase.** Phase 0's scaffold
+didn't set one up (no vitest/jest in devDependencies), and adding one
+plus writing meaningful component tests would have been substantial
+additional scope for a phase already large enough to need a backend
+addition first. Verification instead leaned on live, real-backend
+browser testing via the Claude Browser tool -- upload flows exercised
+end to end, DOM inspection to confirm computed classes/highlighting
+logic, and API responses cross-checked against on-screen numbers. This
+is a real gap (regressions in component logic won't be caught
+automatically) worth closing in a later pass, not a decision to leave
+permanently unaddressed.
+
+**Two real bugs found by that live verification, not by code review:**
+
+1. Phase 0's `eslint.config.js` had no browser globals configured. Flat
+   ESLint config (ESLint 9+) dropped the old `env: browser` shorthand --
+   globals like `window`, `fetch`, `File`, `HTMLElement` must be listed
+   explicitly via the `globals` package. Every browser-touching file in
+   this phase failed lint with `no-undef` until fixed. This was a latent
+   gap in Phase 0's scaffold that simply hadn't been exercised yet (Phase
+   0's only component barely touched the DOM).
+2. Recharts' `Pie` (and, less consistently, `Bar`) rendered zero visible
+   shapes in the Dashboard despite correct data flowing in with no
+   console errors -- a known interaction between Recharts' mount
+   animation (built on `react-smooth`) and React 18 `StrictMode`'s
+   double-invoked effects in development, where the animation's internal
+   state machine can get stuck at its 0% frame. Confirmed by direct DOM
+   inspection (`.recharts-pie-sector` count was 0 with valid data
+   present) rather than guessing from the screenshot alone. Fixed with
+   `isAnimationActive={false}` on both chart types. Instant, non-animated
+   chart rendering is arguably the better choice for a dashboard anyway.
+
+**Verified live against the running stack**, not just typecheck/lint:
+uploaded via the paste-headers flow, confirmed the verdict banner,
+indicator panel weights/evidence, hop table, and raw-header highlighting
+(DOM-inspected the exact set of highlighted header blocks -- all three
+anomalous `Received:` blocks plus the failing `Authentication-Results:`
+block, and nothing else) all matched the underlying data exactly;
+confirmed the Nexus Events list and Dashboard (KPI cards, verdict pie,
+auth-failure bars, anomaly-type bars) against live `/api/v1/stats`
+output. `tsc --noEmit` and `eslint .` both clean; backend suite still
+159/159 (2 new tests for the `format=eml` export path), `ruff`/`mypy
+--strict` clean.

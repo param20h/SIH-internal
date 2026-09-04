@@ -108,6 +108,6 @@ export async function fetchStats(): Promise<StatsResponse> {
   return (await response.json()) as StatsResponse;
 }
 
-export function exportUrl(id: string, format: "json" | "txt"): string {
+export function exportUrl(id: string, format: "json" | "txt" | "eml"): string {
   return `${API_V1}/analyses/${id}/export?format=${format}`;
 }

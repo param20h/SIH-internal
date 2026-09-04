@@ -134,6 +134,36 @@ def test_export_txt(client: TestClient) -> None:
     assert "negative_time_delta" in response.text
 
 
+def test_export_eml_returns_original_bytes(client: TestClient) -> None:
+    original = _sample_bytes("13_forged_received_header_injected.eml")
+    upload = client.post(
+        "/api/v1/analyses", files={"file": ("13.eml", original, "message/rfc822")}
+    )
+    analysis_id = upload.json()["id"]
+
+    response = client.get(f"/api/v1/analyses/{analysis_id}/export", params={"format": "eml"})
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "message/rfc822"
+    assert response.content == original
+
+
+def test_export_eml_available_even_when_pending(
+    client: TestClient, fake_celery_task: _FakeTask
+) -> None:
+    batch = client.post(
+        "/api/v1/analyses/batch",
+        files=[("files", ("01.eml", _sample_bytes("01_clean_newsletter.eml"), "message/rfc822"))],
+    )
+    analysis_id = batch.json()["items"][0]["analysis_id"]
+
+    response = client.get(f"/api/v1/analyses/{analysis_id}/export", params={"format": "eml"})
+    assert response.status_code == 200
+
+    # But json/txt require the analysis to actually be complete.
+    response = client.get(f"/api/v1/analyses/{analysis_id}/export", params={"format": "json"})
+    assert response.status_code == 409
+
+
 def test_export_not_found(client: TestClient) -> None:
     response = client.get(
         "/api/v1/analyses/00000000-0000-0000-0000-000000000000/export", params={"format": "json"}

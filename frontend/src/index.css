@@ -6,15 +6,24 @@
   --background: 222 47% 6%;
   --foreground: 210 20% 96%;
   --card: 222 40% 10%;
+  --muted: 222 32% 14%;
+  --muted-foreground: 215 16% 65%;
   --border: 217 30% 20%;
   --accent: 199 89% 58%;
   --danger: 0 84% 60%;
   --warning: 38 92% 55%;
   --safe: 142 71% 45%;
+  --ring: 199 89% 58%;
+}
+
+* {
+  border-color: hsl(var(--border));
 }
 
 body {
   margin: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family:
     ui-sans-serif,
     system-ui,
@@ -22,4 +31,37 @@ body {
     "Segoe UI",
     Roboto,
     sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+
+/* Relay-path map: an animated dash gives the connecting lines a sense of
+   mail actually moving hop-to-hop, rather than a static diagram. */
+@keyframes relay-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.relay-line,
+.relay-line-anomalous {
+  stroke-dasharray: 6 4;
+  animation: relay-flow 1.2s linear infinite;
+}
+.relay-line-anomalous {
+  animation-duration: 0.6s;
 }

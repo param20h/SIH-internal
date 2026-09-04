@@ -118,17 +118,27 @@ def get_analysis(analysis_id: uuid.UUID, db: Session = Depends(get_db)) -> Analy
 @router.get("/{analysis_id}/export")
 def export_analysis(
     analysis_id: uuid.UUID,
-    format: Literal["json", "txt"] = "json",
+    format: Literal["json", "txt", "eml"] = "json",
     db: Session = Depends(get_db),
 ) -> Response:
     analysis = crud.get_analysis(db, analysis_id)
     if analysis is None:
         raise HTTPException(status_code=404, detail="analysis not found")
+
+    base_name = analysis.filename.rsplit(".", 1)[0] or str(analysis_id)
+
+    # The original raw bytes are stored the moment a file is uploaded, so
+    # this format is available regardless of analysis status -- unlike
+    # json/txt, it needs no ForensicReport (which only exists once
+    # analysis has completed).
+    if format == "eml":
+        headers = {"Content-Disposition": f'attachment; filename="{base_name}.eml"'}
+        return Response(analysis.raw_bytes, media_type="message/rfc822", headers=headers)
+
     if analysis.status != "complete":
         raise HTTPException(status_code=409, detail=f"analysis is {analysis.status}, not complete yet")
 
     report = crud.to_forensic_report(analysis)
-    base_name = analysis.filename.rsplit(".", 1)[0] or str(analysis_id)
 
     if format == "txt":
         content = render_text_report(report)
