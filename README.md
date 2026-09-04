@@ -9,6 +9,10 @@ forensic dossier tracing where the message actually came from.
 
 ## Status
 
+See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the full phase-by-phase build
+log — what was built, real bugs found while verifying (not just what was
+planned), and every design tradeoff decided along the way.
+
 **Phase 1 — Deterministic forensics engine.** Phase 0 (monorepo scaffold,
 Docker Compose stack, health endpoint, lint/type/test tooling, 20-file
 synthetic sample corpus — see [`data/samples/README.md`](data/samples/README.md))
