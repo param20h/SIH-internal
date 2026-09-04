@@ -154,7 +154,13 @@ def list_analyses(
         stmt = stmt.where(Analysis.dmarc_result == dmarc_result)
         count_stmt = count_stmt.where(Analysis.dmarc_result == dmarc_result)
 
-    stmt = stmt.order_by(Analysis.created_at.desc()).limit(limit).offset(offset)
+    # created_at alone is not a stable sort key: Postgres's now() is fixed
+    # for the lifetime of a transaction, so multiple rows inserted in one
+    # transaction (e.g. a batch, or several rows created in one test) get
+    # an identical timestamp. Without a tiebreaker, LIMIT/OFFSET pages can
+    # return overlapping or skipped rows across ties. id is unique and
+    # assigned per-row, so it's a reliable secondary key.
+    stmt = stmt.order_by(Analysis.created_at.desc(), Analysis.id.desc()).limit(limit).offset(offset)
 
     total = db.scalar(count_stmt) or 0
     rows = db.scalars(stmt).all()

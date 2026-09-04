@@ -221,3 +221,22 @@ handlers, which blocks the event loop during DB I/O. Acceptable at
 hackathon-demo concurrency; a fully async stack (async psycopg +
 `AsyncSession`) would be the correct fix for real production load, but is
 disproportionate scope for this project's actual requirements right now.
+
+### A real bug the transactional test setup caught
+
+After the phase's initial commit, running the test suite a second time
+(after having manually smoke-tested the live API with curl, which left a
+few real rows in the dev database) surfaced two failures:
+`test_list_analyses_pagination` and a stats test that wrongly assumed an
+empty database. The stats one was a bad test assumption (fixed by
+asserting structural invariants instead of exact-zero counts — see
+`test_stats_response_shape_and_invariants`), but the pagination failure
+was a genuine bug: `list_analyses` sorted only by `created_at DESC`, and
+Postgres's `now()` is fixed for the lifetime of a transaction, so several
+rows inserted in one transaction (a batch upload, or several rows created
+in one test) get an *identical* `created_at`. Without a tiebreaker,
+`LIMIT`/`OFFSET` pages over tied rows aren't guaranteed stable, so
+consecutive pages could return an overlapping row. Fixed by adding `id`
+as a secondary sort key. Worth calling out because it's exactly the kind
+of bug that a from-empty test database would never have caught — it only
+showed up once real, timestamp-colliding data existed to sort over.
