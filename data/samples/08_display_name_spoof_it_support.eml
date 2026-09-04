@@ -1,0 +1,30 @@
+Return-Path: <sysadmin1122@mail-secure-noreply.info>
+Received: from smtp.mail-secure-noreply.info (smtp.mail-secure-noreply.info [91.243.85.14])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 5TrE9wQz
+	for <priya.nair@example-corp.test>; Tue, 08 Sep 2026 13:44:02 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=sysadmin1122@mail-secure-noreply.info;
+	dkim=pass header.d=mail-secure-noreply.info header.s=k1;
+	dmarc=pass (policy=none) header.from=mail-secure-noreply.info
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mail-secure-noreply.info;
+	s=k1; t=1757338442; h=from:to:subject:date:message-id;
+	bh=aa11bb22cc33dd44ee55ff66007788990011223344556677889900aabbccdd;
+	b=Qp7oNm5lKj3iHg1fEd9cBa7zYx5wVu3tSr1qPo9nMl7kJi5hGf3eDc1bAz9yXw==
+From: "IT Help Desk" <sysadmin1122@mail-secure-noreply.info>
+To: priya.nair@example-corp.test
+Subject: Action required: your mailbox is 94% full
+Date: Tue, 08 Sep 2026 13:43:55 +0000
+Message-ID: <itdesk-33410@mail-secure-noreply.info>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Your mailbox has reached 94% of its storage quota and new messages may
+soon be rejected.
+
+Click below to verify your credentials and increase your quota:
+https://mail-secure-noreply.info/quota/verify?user=priya.nair
+
+Failure to verify within 24 hours may result in account suspension.
+
+IT Help Desk

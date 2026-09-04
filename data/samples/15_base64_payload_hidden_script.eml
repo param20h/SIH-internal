@@ -1,0 +1,42 @@
+Return-Path: <updates@member-rewards.test>
+Received: from mx4.example-corp.test (mx4.example-corp.test [203.0.113.9])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 9GhI0jKl
+	for <priya.nair@example-corp.test>; Sat, 12 Sep 2026 08:30:14 +0000 (UTC)
+Received: from out.member-rewards.test (out.member-rewards.test [45.79.112.33])
+	by mx4.example-corp.test with ESMTP id 0HiJ1kLm
+	for <priya.nair@example-corp.test>; Sat, 12 Sep 2026 08:30:05 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail smtp.mailfrom=updates@member-rewards.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=none) header.from=member-rewards.test
+From: "Member Rewards" <updates@member-rewards.test>
+To: priya.nair@example-corp.test
+Subject: You have 4,500 unclaimed reward points
+Date: Sat, 12 Sep 2026 08:29:58 +0000
+Message-ID: <mr-rewards-20291@member-rewards.test>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="tva_boundary_a1b2c3"
+
+This is a multi-part message in MIME format.
+
+--tva_boundary_a1b2c3
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+You have 4,500 unclaimed reward points expiring soon. Open this email
+in an HTML-capable client to view and redeem them.
+
+--tva_boundary_a1b2c3
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+PGh0bWw+PGJvZHk+CjxwPllvdSBoYXZlIDxiPjQsNTAwPC9iPiB1bmNsYWltZWQgcmV3YXJkIHBv
+aW50cyE8L3A+CjxwPjxhIGhyZWY9Imh0dHA6Ly9tZW1iZXItcmV3YXJkcy50ZXN0L2NsYWltIj5D
+bGFpbSBub3c8L2E+PC9wPgo8IS0tIHRoZSBmb2xsb3dpbmcgaW5saW5lIHNjcmlwdCBpcyBhIGJl
+bmlnbiwgc3RhdGljIFRWQSBzYW1wbGUtY29ycHVzIGZpeHR1cmU7IGl0IGRvZXMgbm90IGV4ZWN1
+dGUgYW55IG5ldHdvcmsgY2FsbCBhbmQgaXMgb25seSBwcmVzZW50IHRvIGV4ZXJjaXNlIHRoZQph
+bmFseXplcidzIGJhc2U2NC1kZWNvZGUgYW5kIGhpZGRlbi1zY3JpcHQtaW4taHRtbC1wYXJ0IGRl
+dGVjdG9yLiAtLT4KPHNjcmlwdD5kb2N1bWVudC50aXRsZT0iY2xhaW1lZCI7PC9zY3JpcHQ+Cjwv
+Ym9keT48L2h0bWw+
+
+--tva_boundary_a1b2c3--

@@ -1,0 +1,29 @@
+Return-Path: <noreply@shiplogix.test>
+Received: from mx2.example-corp.test (mx2.example-corp.test [203.0.113.6])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 4EwR8tYu
+	for <priya.nair@example-corp.test>; Mon, 07 Sep 2026 16:20:44 +0000 (UTC)
+Received: from smtp9.shiplogix.test (smtp9.shiplogix.test [172.16.5.90])
+	by mx2.example-corp.test with ESMTP id 6OpL1qWs
+	for <priya.nair@example-corp.test>; Mon, 07 Sep 2026 16:20:38 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=neutral smtp.mailfrom=noreply@shiplogix.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=reject) header.from=shiplogix.test
+From: "ShipLogix Delivery" <noreply@shiplogix.test>
+To: priya.nair@example-corp.test
+Subject: Your package could not be delivered — action required
+Date: Mon, 07 Sep 2026 16:20:30 +0000
+Message-ID: <ship-99231@shiplogix.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+We attempted to deliver your package today but were unable to reach
+you. A small redelivery fee is required to reschedule.
+
+Pay the fee here: https://shiplogix-redeliver.test/pay?tracking=99231
+
+If the fee is not paid within 48 hours, the package will be returned
+to sender.
+
+ShipLogix Delivery

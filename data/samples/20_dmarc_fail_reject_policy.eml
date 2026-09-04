@@ -1,0 +1,36 @@
+Return-Path: <security-noreply@apple-id-verify.test>
+Received: from unknown (unknown [102.129.145.60])
+	by mail1.example-corp.test (Postfix) with ESMTP id 9QrS0tUv
+	for <priya.nair@example-corp.test>; Mon, 14 Sep 2026 22:47:31 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail (mail1.example-corp.test: domain of security-noreply@apple.test
+	  does not designate 102.129.145.60 as permitted sender)
+	  smtp.mailfrom=security-noreply@apple.test;
+	dkim=fail (body hash did not verify) header.d=apple.test header.s=sel1;
+	dmarc=fail (p=reject sp=reject dis=reject) header.from=apple.test
+From: "Apple ID" <security-noreply@apple.test>
+To: priya.nair@example-corp.test
+Subject: Your Apple ID has been locked for security reasons
+Date: Mon, 14 Sep 2026 22:47:20 +0000
+Message-ID: <appleid-lock-99902@102-129-145-60.unknown>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Your Apple ID has been locked due to multiple failed sign-in attempts.
+
+To unlock your account, verify your identity within 24 hours:
+https://apple-id-verify.test/unlock?case=99902
+
+If you do not verify in time, your account and any associated
+purchases may be permanently disabled.
+
+Apple ID Support
+
+Note for TVA sample corpus: apple.test publishes a DMARC policy of
+p=reject, and this message fails SPF, fails DKIM, and consequently
+fails DMARC alignment outright -- receiving infrastructure enforcing
+the published policy would reject this message at the SMTP boundary.
+This is the clearest-cut "should never reach an inbox" case in the
+corpus, included to validate that the deterministic layer correctly
+surfaces a reject-policy DMARC failure as maximally severe.

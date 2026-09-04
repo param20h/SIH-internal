@@ -1,0 +1,38 @@
+Return-Path: <no-reply@partner-crm.test>
+Received: from mx8.example-corp.test (mx8.example-corp.test [203.0.113.14])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 7OpQ8rSt
+	for <priya.nair@example-corp.test>; Mon, 14 Sep 2026 10:05:00 +0000 (UTC)
+Received: from mail-out.partner-crm.test (mail-out.partner-crm.test [203.0.113.201])
+	by mx8.example-corp.test with ESMTPS id 8PqR9sTu
+	for <priya.nair@example-corp.test>; Mon, 14 Sep 2026 10:04:52 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=no-reply@partner-crm.test;
+	dkim=fail (signature expired) header.d=partner-crm.test header.s=old2024;
+	dmarc=fail (policy=quarantine) header.from=partner-crm.test
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=partner-crm.test;
+	s=old2024; t=1704067200; x=1706745600; h=from:to:subject:date:message-id;
+	bh=5566778899001122334455667788990011223344556677889900112233aabb;
+	b=Rs1tUv9wXy7zAb5cDe3fGh1iJk9lMn7oPq5rSt3uVw1xYz9aBc7dEf5gHi3jK==
+From: "Partner CRM Notifications" <no-reply@partner-crm.test>
+To: priya.nair@example-corp.test
+Subject: A lead was reassigned to you
+Date: Mon, 14 Sep 2026 10:04:45 +0000
+Message-ID: <crm-lead-88710@partner-crm.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+A lead record was reassigned to you in the partner CRM. Log in to
+review the details.
+
+https://partner-crm.test/leads/88710
+
+Note for TVA sample corpus: the DKIM-Signature header's expiration
+tag (x=1706745600, 2024-02-01T00:00:00Z) is far in the past relative
+to the message Date (2026-09-14), and the signing timestamp
+(t=1704067200, 2024-01-01T00:00:00Z) is stale as well. This models a
+replayed or stale message using a long-dead signing key/selector --
+the signature format is well-formed but must be evaluated as
+expired/failed, not simply "present therefore trusted".
+
+Partner CRM

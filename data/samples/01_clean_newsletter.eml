@@ -1,0 +1,38 @@
+Return-Path: <newsletter@example-press.test>
+Received: from mx1.example-press.test (mx1.example-press.test [203.0.113.10])
+	by mail.example-corp.test (Postfix) with ESMTPS id 4T1abc2xYz
+	for <priya.nair@example-corp.test>; Wed, 02 Sep 2026 09:14:22 +0000 (UTC)
+Received: from smtp-out.example-press.test (smtp-out.example-press.test [198.51.100.20])
+	by mx1.example-press.test with ESMTP id 3Kj9pQ1r
+	for <priya.nair@example-corp.test>; Wed, 02 Sep 2026 09:14:18 +0000 (UTC)
+Authentication-Results: mail.example-corp.test;
+	spf=pass smtp.mailfrom=newsletter@example-press.test;
+	dkim=pass header.d=example-press.test header.s=news2026;
+	dmarc=pass (policy=quarantine) header.from=example-press.test
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example-press.test;
+	s=news2026; t=1756804450; h=from:to:subject:date:message-id;
+	bh=8f3a9c1e2b7d4f5061c8a9b3d2e1f0a7c6b5d4e3f2a1b0c9d8e7f6a5b4c3d2e1;
+	b=Rk3pQvL9sT2mN8xW7yZ1aB4cD6eF0gH3iJ5kL8mN2oP4qR7sT9uV1wX3yZ5aB7cD9eF1gH==
+From: "Example Press Weekly" <newsletter@example-press.test>
+To: priya.nair@example-corp.test
+Subject: Your Weekly Digest — 5 stories worth reading
+Date: Wed, 02 Sep 2026 09:14:00 +0000
+Message-ID: <20260902091400.1.abcde@example-press.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hi Priya,
+
+Here is this week's digest from Example Press Weekly:
+
+1. Local council approves new cycling lanes downtown.
+2. Regional university opens applications for the winter research grant.
+3. Weather outlook: mild temperatures through the weekend.
+4. Community garden volunteers needed this Saturday.
+5. Op-ed: what the new transit schedule means for commuters.
+
+You are receiving this because you subscribed at example-press.test/subscribe.
+To unsubscribe, visit https://example-press.test/unsubscribe?id=8841203
+
+— The Example Press Weekly Team

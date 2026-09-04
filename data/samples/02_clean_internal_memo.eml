@@ -1,0 +1,34 @@
+Return-Path: <hr@example-corp.test>
+Received: from mail2.example-corp.test (mail2.example-corp.test [10.20.30.41])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 8Wq2ZaBc
+	for <all-staff@example-corp.test>; Thu, 03 Sep 2026 14:02:11 +0000 (UTC)
+Received: from hr-outbox.example-corp.test (hr-outbox.example-corp.test [10.20.10.5])
+	by mail2.example-corp.test (Postfix) with ESMTP id 1PqR5sTu
+	for <all-staff@example-corp.test>; Thu, 03 Sep 2026 14:02:05 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=hr@example-corp.test;
+	dkim=pass header.d=example-corp.test header.s=corp2025;
+	dmarc=pass (policy=reject) header.from=example-corp.test
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example-corp.test;
+	s=corp2025; t=1756908125; h=from:to:subject:date:message-id;
+	bh=1a2b3c4d5e6f7089a1b2c3d4e5f60718293a4b5c6d7e8f9012a3b4c5d6e7f89;
+	b=Mn4oPqR7sT9uV1wX3yZ5aB7cD9eF1gH3iJ5kL7mN9oP1qR3sT5uV7wX9yZ1aB3cD5e==
+From: "Human Resources" <hr@example-corp.test>
+To: all-staff@example-corp.test
+Subject: Office closed Monday for public holiday
+Date: Thu, 03 Sep 2026 14:02:00 +0000
+Message-ID: <20260903140200.14.hr@example-corp.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hi all,
+
+A reminder that the office will be closed this coming Monday for the
+public holiday. Remote access to internal systems remains available as
+usual for anyone who needs it.
+
+Regular hours resume Tuesday.
+
+Thanks,
+HR Team

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 222 47% 6%;
+  --foreground: 210 20% 96%;
+  --card: 222 40% 10%;
+  --border: 217 30% 20%;
+  --accent: 199 89% 58%;
+  --danger: 0 84% 60%;
+  --warning: 38 92% 55%;
+  --safe: 142 71% 45%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}

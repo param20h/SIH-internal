@@ -1,0 +1,46 @@
+Return-Path: <billing@invoice-delivery-net.test>
+Received: from mx5.example-corp.test (mx5.example-corp.test [203.0.113.11])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 1IjK2lMn
+	for <accounts.payable@example-corp.test>; Sat, 12 Sep 2026 15:11:22 +0000 (UTC)
+Received: from smtp-out.invoice-delivery-net.test (smtp-out.invoice-delivery-net.test [37.120.8.201])
+	by mx5.example-corp.test with ESMTP id 2JkL3mNo
+	for <accounts.payable@example-corp.test>; Sat, 12 Sep 2026 15:11:14 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail smtp.mailfrom=billing@invoice-delivery-net.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=none) header.from=invoice-delivery-net.test
+From: "Accounts Payable" <billing@invoice-delivery-net.test>
+To: accounts.payable@example-corp.test
+Subject: Outstanding Invoice attached - please review
+Date: Sat, 12 Sep 2026 15:11:00 +0000
+Message-ID: <inv-attach-40188@invoice-delivery-net.test>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="tva_boundary_x9y8z7"
+
+This is a multi-part message in MIME format.
+
+--tva_boundary_x9y8z7
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Please see the attached invoice document and remit payment at your
+earliest convenience.
+
+--tva_boundary_x9y8z7
+Content-Type: application/octet-stream; name="Invoice_40188.pdf.exe"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Invoice_40188.pdf.exe"
+
+VFZBX1NBTVBMRV9DT1JQVVNfRklYVFVSRSAtIHRoaXMgaXMgZmFicmljYXRlZCBwbGFjZWhvbGRl
+ciBjb250ZW50LCBub3QgYSByZWFsIGV4ZWN1dGFibGUsIHVzZWQgb25seSB0byB0ZXN0IGF0dGFj
+aG1lbnQtdHlwZSBhbmQgZG91YmxlLWV4dGVuc2lvbiBkZXRlY3Rpb24uVFZBX1NBTVBMRV9DT1JQ
+VVNfRklYVFVSRSAtIHRoaXMgaXMgZmFicmljYXRlZCBwbGFjZWhvbGRlciBjb250ZW50LCBub3Qg
+YSByZWFsIGV4ZWN1dGFibGUsIHVzZWQgb25seSB0byB0ZXN0IGF0dGFjaG1lbnQtdHlwZSBhbmQg
+ZG91YmxlLWV4dGVuc2lvbiBkZXRlY3Rpb24uVFZBX1NBTVBMRV9DT1JQVVNfRklYVFVSRSAtIHRo
+aXMgaXMgZmFicmljYXRlZCBwbGFjZWhvbGRlciBjb250ZW50LCBub3QgYSByZWFsIGV4ZWN1dGFi
+bGUsIHVzZWQgb25seSB0byB0ZXN0IGF0dGFjaG1lbnQtdHlwZSBhbmQgZG91YmxlLWV4dGVuc2lv
+biBkZXRlY3Rpb24uVFZBX1NBTVBMRV9DT1JQVVNfRklYVFVSRSAtIHRoaXMgaXMgZmFicmljYXRl
+ZCBwbGFjZWhvbGRlciBjb250ZW50LCBub3QgYSByZWFsIGV4ZWN1dGFibGUsIHVzZWQgb25seSB0
+byB0ZXN0IGF0dGFjaG1lbnQtdHlwZSBhbmQgZG91YmxlLWV4dGVuc2lvbiBkZXRlY3Rpb24u
+
+--tva_boundary_x9y8z7--

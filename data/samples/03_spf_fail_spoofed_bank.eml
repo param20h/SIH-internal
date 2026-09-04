@@ -1,0 +1,30 @@
+Return-Path: <alerts@firstnational-secure.test>
+Received: from unknown (unknown [185.220.101.47])
+	by mail1.example-corp.test (Postfix) with ESMTP id 9XyZ1aBc
+	for <priya.nair@example-corp.test>; Fri, 04 Sep 2026 02:11:47 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail (mail1.example-corp.test: domain of alerts@firstnational.test
+	  does not designate 185.220.101.47 as permitted sender)
+	  smtp.mailfrom=alerts@firstnational.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=reject) header.from=firstnational.test
+From: "First National Bank Security" <alerts@firstnational.test>
+To: priya.nair@example-corp.test
+Subject: URGENT: Unusual sign-in detected on your account
+Date: Fri, 04 Sep 2026 02:11:40 +0000
+Message-ID: <9c8b7a6d5e4f@185-220-101-47.unknown>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Dear Customer,
+
+We detected an unusual sign-in attempt on your First National Bank
+account from a new device. If this was not you, your account may be
+compromised.
+
+Verify your identity immediately to avoid a 24-hour account suspension:
+https://firstnational-secure-verify.test/login?ref=8817234
+
+First National Bank Security Team
+This is an automated message, please do not reply.

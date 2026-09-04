@@ -1,0 +1,32 @@
+Return-Path: <j.carter847@freemail-hosting.test>
+Received: from mail-relay.freemail-hosting.test (mail-relay.freemail-hosting.test [45.148.10.203])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 8IuY3tRe
+	for <priya.nair@example-corp.test>; Tue, 08 Sep 2026 07:02:19 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=j.carter847@freemail-hosting.test;
+	dkim=pass header.d=freemail-hosting.test header.s=fm1;
+	dmarc=pass (policy=none) header.from=freemail-hosting.test
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=freemail-hosting.test;
+	s=fm1; t=1757314939; h=from:to:subject:date:message-id;
+	bh=0011223344556677889900aabbccddeeff0011223344556677889900aabbcc;
+	b=zYxW9vUt7sRq5pOn3mLk1jIh8gFe6dCb4aZy2xWv0uTs8rQp6oNm4lKj2iHg0f==
+From: "John Carter (CEO)" <j.carter847@freemail-hosting.test>
+To: priya.nair@example-corp.test
+Subject: Quick favor - confidential
+Date: Tue, 08 Sep 2026 07:02:10 +0000
+Message-ID: <ceofraud-77219@freemail-hosting.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Priya,
+
+Are you at your desk? I need you to handle something confidential for
+me before my flight boards. I can't take calls right now but email
+works. I need you to purchase 5 gift cards for a client gesture and
+send me the codes directly. I'll explain and reimburse you when I land.
+
+Let me know you got this.
+
+John
+Sent from my iPhone

@@ -1,0 +1,32 @@
+Return-Path: <account-security@micr0soft-online.com>
+Received: from out.micr0soft-online.com (out.micr0soft-online.com [141.98.11.201])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 9BnM4xCv
+	for <priya.nair@example-corp.test>; Wed, 09 Sep 2026 10:52:07 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=account-security@micr0soft-online.com;
+	dkim=pass header.d=micr0soft-online.com header.s=sel;
+	dmarc=pass (policy=none) header.from=micr0soft-online.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=micr0soft-online.com;
+	s=sel; t=1757414427; h=from:to:subject:date:message-id;
+	bh=2233445566778899001122334455667788990011223344556677889900aabb;
+	b=Mn3oPq1rTs9uVw7xYz5aBc3dEf1gHi9jKl7mNo5pQr3sTu1vWx9yZ7aBc5dEf==
+From: "Microsoft Account Team" <account-security@micr0soft-online.com>
+To: priya.nair@example-corp.test
+Subject: Unusual sign-in activity on your Microsoft account
+Date: Wed, 09 Sep 2026 10:52:00 +0000
+Message-ID: <msft-sec-55102@micr0soft-online.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+We detected a sign-in attempt from an unrecognized device in a
+different location. If this wasn't you, secure your account now:
+
+https://micr0soft-online.com/account/secure?ref=55102
+
+Microsoft Account Team
+
+Note for TVA sample corpus: the sender domain "micr0soft-online.com"
+substitutes a digit "0" for the letter "o" to mimic "microsoft.com" —
+a numeric lookalike / typosquat technique, distinct from Unicode
+confusables but caught by the same homoglyph-normalization pipeline.

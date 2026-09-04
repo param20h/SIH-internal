@@ -1,0 +1,41 @@
+Return-Path: <security@example-corp.test>
+Received: from unknown (unknown [193.106.30.44])
+	by mail1.example-corp.test (Postfix) with ESMTP id 1XyA2bCd
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 03:40:12 +0000 (UTC)
+Received: from mail1.example-corp.test (mail1.example-corp.test [10.20.30.1])
+	by mail1.example-corp.test (Postfix) with ESMTP id 2YzB3cDe
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 03:40:05 +0000 (UTC)
+Received: from webmail.example-corp.test (webmail.example-corp.test [10.20.30.99])
+	by mail1.example-corp.test (Postfix) with ESMTP id 3ZaC4dEf
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 03:39:58 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail (mail1.example-corp.test: domain of security@example-corp.test
+	  does not designate 193.106.30.44 as permitted sender)
+	  smtp.mailfrom=security@example-corp.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=reject) header.from=example-corp.test
+From: "Security Team" <security@example-corp.test>
+To: priya.nair@example-corp.test
+Subject: Mandatory password reset — complete by end of day
+Date: Fri, 11 Sep 2026 03:39:50 +0000
+Message-ID: <secreset-11029@example-corp.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+All staff must reset their password by end of day due to a routine
+security rotation. Use the link below:
+
+https://example-corp-secure-reset.test/reset?u=priya.nair
+
+Security Team
+
+Note for TVA sample corpus: two inner Received headers ("webmail ->
+mail1" and "mail1 -> mail1") claim the message originated on internal
+example-corp.test infrastructure, giving the chain a false appearance
+of legitimacy. But the outermost (actually-first-received) hop shows
+the true originating IP, 193.106.30.44, which belongs to neither
+example-corp.test's internal netblock nor any of its documented
+outbound relays — and it is what SPF actually evaluated against,
+which is why SPF fails despite the forged inner hops claiming an
+internal origin.

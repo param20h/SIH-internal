@@ -1,0 +1,59 @@
+Return-Path: <list-bounce@global-mailinglist.test>
+Received: from mx1.example-corp.test (mx1.example-corp.test [203.0.113.5])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 1AbC2dEf
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 06:00:59 +0000 (UTC)
+Received: from edge-us-east.global-mailinglist.test (edge-us-east.global-mailinglist.test [198.51.100.11])
+	by mx1.example-corp.test with ESMTPS id 2BcD3eFg
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 06:00:51 +0000 (UTC)
+Received: from relay-eu-west.global-mailinglist.test (relay-eu-west.global-mailinglist.test [198.51.100.12])
+	by edge-us-east.global-mailinglist.test with ESMTP id 3CdE4fGh
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:59:40 +0000 (UTC)
+Received: from relay-ap-south.global-mailinglist.test (relay-ap-south.global-mailinglist.test [198.51.100.13])
+	by relay-eu-west.global-mailinglist.test with ESMTP id 4DeF5gHi
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:58:20 +0000 (UTC)
+Received: from queue-worker-3.global-mailinglist.test (queue-worker-3.global-mailinglist.test [198.51.100.14])
+	by relay-ap-south.global-mailinglist.test with ESMTP id 5EfG6hIj
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:57:05 +0000 (UTC)
+Received: from queue-worker-2.global-mailinglist.test (queue-worker-2.global-mailinglist.test [198.51.100.15])
+	by queue-worker-3.global-mailinglist.test with ESMTP id 6FgH7iJk
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:55:52 +0000 (UTC)
+Received: from mta-out-4.global-mailinglist.test (mta-out-4.global-mailinglist.test [198.51.100.16])
+	by queue-worker-2.global-mailinglist.test with ESMTP id 7GhI8jKl
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:54:30 +0000 (UTC)
+Received: from mta-out-1.global-mailinglist.test (mta-out-1.global-mailinglist.test [198.51.100.17])
+	by mta-out-4.global-mailinglist.test with ESMTP id 8HiJ9kLm
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:53:11 +0000 (UTC)
+Received: from submit.global-mailinglist.test (submit.global-mailinglist.test [198.51.100.18])
+	by mta-out-1.global-mailinglist.test with ESMTP id 9IjK0lMn
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 05:52:00 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=list-bounce@global-mailinglist.test;
+	dkim=pass header.d=global-mailinglist.test header.s=list1;
+	dmarc=pass (policy=none) header.from=global-mailinglist.test
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=global-mailinglist.test;
+	s=list1; t=1757483520; h=from:to:subject:date:message-id;
+	bh=3344556677889900112233445566778899001122334455667788990011aabb;
+	b=Op1qRs9tUv7wXy5zAb3cDe1fGh9iJk7lMn5oPq3rSt1uVw9xYz7aBc5dEf3gHi==
+From: "Global Research Digest" <list-bounce@global-mailinglist.test>
+To: priya.nair@example-corp.test
+Subject: Monthly digest: research roundup for September
+Date: Thu, 10 Sep 2026 05:51:45 +0000
+Message-ID: <digest-sep-2026@global-mailinglist.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hi Priya,
+
+This month's research digest is queued through our usual multi-region
+delivery pipeline (submission -> outbound MTAs -> regional relays ->
+edge -> your mail server), which is why you'll see a longer than usual
+relay chain on this message. All hops belong to our documented
+sending infrastructure.
+
+Top stories this month:
+- Open datasets released for climate modeling
+- New benchmark suite for distributed systems
+- Call for papers: winter symposium
+
+— Global Research Digest

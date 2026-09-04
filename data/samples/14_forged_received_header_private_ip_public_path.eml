@@ -1,0 +1,41 @@
+Return-Path: <updates@cloudsync-storage.test>
+Received: from mx1.example-corp.test (mx1.example-corp.test [203.0.113.5])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 5CdE6fGh
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 12:05:40 +0000 (UTC)
+Received: from gateway.cloudsync-storage.test (gateway.cloudsync-storage.test [198.51.100.44])
+	by mx1.example-corp.test with ESMTP id 6DeF7gHi
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 12:05:33 +0000 (UTC)
+Received: from mystery-host (mystery-host [127.0.0.1])
+	by gateway.cloudsync-storage.test with ESMTP id 7EfG8hIj
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 12:05:20 +0000 (UTC)
+Received: from submit.cloudsync-storage.test (submit.cloudsync-storage.test [192.168.1.50])
+	by mystery-host with ESMTP id 8FgH9iJk
+	for <priya.nair@example-corp.test>; Fri, 11 Sep 2026 12:05:02 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=neutral smtp.mailfrom=updates@cloudsync-storage.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=quarantine) header.from=cloudsync-storage.test
+From: "CloudSync Storage" <updates@cloudsync-storage.test>
+To: priya.nair@example-corp.test
+Subject: A file was shared with you: "Q3_Salary_Review.xlsx"
+Date: Fri, 11 Sep 2026 12:04:55 +0000
+Message-ID: <cs-share-70213@cloudsync-storage.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+A file has been shared with you: "Q3_Salary_Review.xlsx"
+
+View file: https://cloudsync-storage.test/view?doc=70213&token=8f3a
+
+This link expires in 24 hours.
+
+Note for TVA sample corpus: two interior hops carry private/bogon
+addresses that should never appear on the public internet path a
+message takes between two unrelated organizations — 127.0.0.1
+(loopback) and 192.168.1.50 (RFC 1918 private range). Their presence
+in what is presented as a public relay chain is itself a forged- or
+misconfigured-header indicator, independent of the SPF/DKIM/DMARC
+results.
+
+CloudSync Storage

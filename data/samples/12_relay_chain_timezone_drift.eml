@@ -1,0 +1,45 @@
+Return-Path: <notify@quickpay-transfers.test>
+Received: from mx1.example-corp.test (mx1.example-corp.test [203.0.113.5])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 4KlM5nOp
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 09:15:00 +0000 (UTC)
+Received: from edge.quickpay-transfers.test (edge.quickpay-transfers.test [192.0.2.201])
+	by mx1.example-corp.test with ESMTP id 5LmN6oPq
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 09:14:58 +0000 (UTC)
+Received: from core.quickpay-transfers.test (core.quickpay-transfers.test [192.0.2.202])
+	by edge.quickpay-transfers.test with ESMTP id 6MnO7pQr
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 09:05:10 -0500 (CDT)
+Received: from submit.quickpay-transfers.test (submit.quickpay-transfers.test [192.0.2.203])
+	by core.quickpay-transfers.test with ESMTP id 7NoP8qRs
+	for <priya.nair@example-corp.test>; Thu, 10 Sep 2026 09:20:33 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=pass smtp.mailfrom=notify@quickpay-transfers.test;
+	dkim=pass header.d=quickpay-transfers.test header.s=q1;
+	dmarc=pass (policy=none) header.from=quickpay-transfers.test
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quickpay-transfers.test;
+	s=q1; t=1757495700; h=from:to:subject:date:message-id;
+	bh=4455667788990011223344556677889900112233445566778899001122aabb;
+	b=Qr9sTu7vWx5yZ3aBc1dEf9gHi7jKl5mNo3pQr1sTu9vWx7yZ5aBc3dEf1gHi==
+From: "QuickPay Transfers" <notify@quickpay-transfers.test>
+To: priya.nair@example-corp.test
+Subject: Your transfer of $1,240.00 is being processed
+Date: Thu, 10 Sep 2026 09:20:00 +0000
+Message-ID: <qp-tx-90211@quickpay-transfers.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Your transfer of $1,240.00 to an external account is now being
+processed. If you did not initiate this transfer, contact support
+immediately using the link below.
+
+https://quickpay-transfers.test/support
+
+Note for TVA sample corpus: reconstructed earliest-to-latest, the
+"core -> edge" hop is timestamped 09:05:10 -0500 (14:05:10 UTC once
+normalized), while the very next hop toward the recipient, "edge ->
+mx1", is timestamped 09:14:58 UTC — over four and a half hours
+earlier in absolute time. This produces a negative time delta between
+adjacent hops, a strong indicator of a forged or reordered Received
+header rather than genuine timezone drift.
+
+QuickPay Transfers

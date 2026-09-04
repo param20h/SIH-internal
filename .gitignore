@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+
+# Data (GeoLite2 binary, large sample outputs)
+data/geoip/*.mmdb
+data/exports/
+
+# Editors
+.vscode/
+.idea/

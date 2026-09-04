@@ -1,0 +1,36 @@
+Return-Path: <noreply@hr-benefits-portal.test>
+Received: from mx7.example-corp.test (mx7.example-corp.test [203.0.113.13])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 5MnO6pQr
+	for <priya.nair@example-corp.test>; Sun, 13 Sep 2026 18:22:09 +0000 (UTC)
+Received: from out.hr-benefits-portal.test (out.hr-benefits-portal.test [77.83.14.90])
+	by mx7.example-corp.test with ESMTP id 6NoP7qRs
+	for <priya.nair@example-corp.test>; Sun, 13 Sep 2026 18:22:01 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail smtp.mailfrom=noreply@hr-benefits-portal.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=none) header.from=hr-benefits-portal.test
+From: "Benefits Enrollment" <noreply@hr-benefits-portal.test>
+To: priya.nair@example-corp.test
+Subject: Open enrollment ends tomorrow — confirm your selections
+Date: Sun, 13 Sep 2026 18:21:55 +0000
+Message-ID: <benefits-30044@hr-benefits-portal.test>
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>Open enrollment closes tomorrow at 5:00 PM. Confirm your benefit
+selections using either link below:</p>
+<p><a href="http://tny.test/x8k2p">Confirm via shortened link</a></p>
+<p><a href="http://185.220.101.9/benefits/confirm?id=30044">Confirm via direct link</a></p>
+<!--
+  Note for TVA sample corpus: this message carries two suspicious URL
+  patterns in one body -- a third-party link-shortener domain that
+  hides the true destination, and a second link that uses a bare
+  IP-literal host instead of a domain name. Both are classic
+  URL-analysis red flags: shorteners can't be unwrapped offline, and
+  IP-literal URLs almost never appear in legitimate corporate mail.
+-->
+</body>
+</html>

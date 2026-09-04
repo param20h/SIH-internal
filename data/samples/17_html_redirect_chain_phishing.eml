@@ -1,0 +1,40 @@
+Return-Path: <docs@securedocview.test>
+Received: from mx6.example-corp.test (mx6.example-corp.test [203.0.113.12])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 3KlM4nOp
+	for <priya.nair@example-corp.test>; Sun, 13 Sep 2026 09:00:41 +0000 (UTC)
+Received: from send.securedocview.test (send.securedocview.test [154.16.66.12])
+	by mx6.example-corp.test with ESMTP id 4LmN5oPq
+	for <priya.nair@example-corp.test>; Sun, 13 Sep 2026 09:00:33 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=fail smtp.mailfrom=docs@securedocview.test;
+	dkim=none (message not signed);
+	dmarc=fail (policy=none) header.from=securedocview.test
+From: "Document Center" <docs@securedocview.test>
+To: priya.nair@example-corp.test
+Subject: Shared document requires your signature
+Date: Sun, 13 Sep 2026 09:00:25 +0000
+Message-ID: <docview-88213@securedocview.test>
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>A document has been shared with you and requires your signature.</p>
+<p>
+  <a href="https://track.redirectify.test/r/9a8b7c6d?next=aHR0cDovL2xvZ2luLXNlY3VyZWRvY3ZpZXcuaWNo">
+    View and sign document at docusign.com
+  </a>
+</p>
+<p>This link will expire in 48 hours.</p>
+<!--
+  Note for TVA sample corpus: the anchor text reads "docusign.com" but
+  the actual href points to an unrelated tracking/redirector domain
+  (track.redirectify.test) carrying a base64-encoded "next" parameter
+  that itself decodes to a further lookalike domain
+  (login-securedocview.ich) -- an anchor-text/href mismatch layered
+  with an offline-unwrappable redirect hop, exactly the pattern the
+  URL analysis stage should flag.
+-->
+</body>
+</html>

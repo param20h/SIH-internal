@@ -1,0 +1,30 @@
+Return-Path: <campaigns@bulk-mailer.test>
+Received: from mx3.example-corp.test (mx3.example-corp.test [203.0.113.5])
+	by mail1.example-corp.test (Postfix) with ESMTPS id 2QwE4rTy
+	for <priya.nair@example-corp.test>; Sat, 05 Sep 2026 11:30:02 +0000 (UTC)
+Received: from relay7.bulk-mailer.test (relay7.bulk-mailer.test [198.51.100.77])
+	by mx3.example-corp.test with ESMTP id 5UiO8pAs
+	for <priya.nair@example-corp.test>; Sat, 05 Sep 2026 11:29:55 +0000 (UTC)
+Authentication-Results: mail1.example-corp.test;
+	spf=softfail (mail1.example-corp.test: domain of campaigns@storefront.test
+	  discourages use of 198.51.100.77 as permitted sender, ~all)
+	  smtp.mailfrom=campaigns@storefront.test;
+	dkim=none (message not signed);
+	dmarc=none (no policy published) header.from=storefront.test
+From: "Storefront Deals" <campaigns@storefront.test>
+To: priya.nair@example-corp.test
+Subject: Weekend sale: 20% off everything, today only
+Date: Sat, 05 Sep 2026 11:29:50 +0000
+Message-ID: <camp-88123@bulk-mailer.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hi there,
+
+Our weekend sale is live — 20% off everything storewide, today only.
+
+Shop now: https://storefront.test/sale
+
+Storefront Deals
+Unsubscribe: https://storefront.test/unsubscribe?id=44210
