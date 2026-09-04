@@ -1,4 +1,3 @@
-from datetime import UTC, datetime
 
 from app.attribution.origin import attribute_origin
 from app.forensics.models import Anomaly, AuthResult, RelayHop

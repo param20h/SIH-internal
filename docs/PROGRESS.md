@@ -18,7 +18,7 @@ Status at a glance:
 | 3 | Frontend | done | `5e3346c`, `698c360` |
 | 4 | AI detection layer | done | `a049863` |
 | 5 | Attribution & evidence export | done | `49138ce` |
-| 6 | Demo hardening | not started | — |
+| 6 | Demo hardening | done | `<pending>` |
 
 ---
 
@@ -635,3 +635,101 @@ misleading in exactly the tampered-header cases where attribution matters
 most -- so the design starts from "how much reason is there to doubt this
 candidate" and only reaches `"high"` when nothing found a reason to
 doubt it *and* independent enrichment corroborates it.
+
+---
+
+## Phase 6 — Demo hardening
+
+**Commit:** `<pending>`
+
+The four things this phase was scoped to, per the original brief:
+
+- **`make demo` seeding** — `backend/app/scripts/seed_demo.py`, wired to
+  `make demo`. Idempotent: wipes every existing `Analysis` row (Postgres
+  `ON DELETE CASCADE` on the `hops`/`anomalies` foreign keys handles the
+  rest) and re-ingests the full 20-file sample corpus through
+  `generate_report()` + `crud.create_completed_analysis()` -- the *exact*
+  code path a real upload takes, not a separate synthetic-data
+  reimplementation, so what a demo audience sees is provably what the app
+  actually does with those files. Verified live: `make demo` after a
+  rebuild produced the same 6 clean / 7 suspicious / 7 malicious split
+  both times it was run, and the seeded rows render correctly in the
+  Dashboard and Nexus Events list.
+- **Offline-mode verification** — not just re-reading the code, but
+  actually proving it: `docker run --rm --network none -v
+  "$(pwd)/data:/data" tva-api python -m app.forensics.cli
+  /data/samples/13_forged_received_header_injected.eml` against the real
+  built image, with no network device attached at all (not just no
+  successful calls). It produced a complete report -- parsing,
+  SPF/DKIM/DMARC, relay-chain anomalies, risk score, and AI signals (since
+  `data/models/` happened to be populated on the dev machine) -- proving
+  the hard offline constraint holds at the container level, not just
+  because `enable_network_enrichment` defaults to `False`. The exact
+  command is now in the README's Offline operation section so a judge can
+  re-run it themselves.
+- **Scripted 3-minute demo** — [`docs/DEMO.md`](DEMO.md): a timed
+  walkthrough (problem framing → explainable verdict / "Miss Minutes" →
+  relay chain + origin attribution → AI signals catching an
+  auth-passing phish → PDF/STIX evidence export → close) plus a
+  troubleshooting section for the specific ways a live demo can degrade
+  (missing ONNX models, missing GeoLite2 database) and how to talk about
+  those honestly on stage instead of treating them as failures.
+- **Honest limitations in the README** — replaced the placeholder
+  "see docs/ later" stub with nine specific, true limitations (header-
+  trust-based SPF/DKIM/DMARC, heuristic-not-certain attribution, the
+  phishing classifier's small/dated training corpus, the weak AI-text
+  signal, the manually-installed GeoIP database, curated-not-exhaustive
+  detection tables, upload-only ingestion, unscanned attachments, no
+  auth/multi-tenancy) rather than a generic hackathon disclaimer.
+
+### A real bug found while verifying "make demo" live, not by re-reading code
+
+Seeding the corpus and opening the Dashboard immediately showed "6 hours
+ago" next to analyses that had been created seconds earlier. Root cause:
+`Analysis.created_at`, `Analysis.message_date`, and `Hop.timestamp` were
+all declared as plain `Mapped[datetime]` columns, which SQLAlchemy maps to
+Postgres `TIMESTAMP WITHOUT TIME ZONE` by default. Every value going into
+those columns was already correct in UTC, but Postgres silently drops the
+offset for a naive column type, so the API serialized timestamps with no
+`Z`/offset suffix at all (e.g. `"2026-09-04T19:29:44"`). The frontend's
+relative-time formatter compares against `Date.now()` -- and per the JS
+Date spec, an ISO string with no timezone designator is parsed as *local*
+time, not UTC. On a machine in IST (UTC+5:30), a UTC instant mislabeled as
+local time comes out roughly 5.5 hours in the past, which rounds to "6
+hours ago". Absolute-time displays (the message header date, relay-chain
+hop times) didn't visibly break, purely by coincidence: parsing a string
+as local time and then formatting it back as local time round-trips to
+the same digits regardless of what timezone those digits actually
+represent -- so the bug was silent everywhere except the one place that
+computes a real elapsed duration.
+
+Fixed at the source: all three columns now use `DateTime(timezone=True)`
+(migration `ee3920f23b74`, with an explicit `... AT TIME ZONE 'UTC'`
+`USING` clause on each `ALTER COLUMN` so existing naive-but-actually-UTC
+values are reinterpreted correctly rather than misread as the server's
+local time). Verified live: after the migration, the same reseed showed
+"13 seconds ago" instead of "6 hours ago", and the relay-chain hop times
+on an existing analysis correctly shifted from displaying raw UTC digits
+to true IST-converted digits (`03:39 UTC` now reads `09:09` in a browser
+on IST) -- confirming the fix isn't just quieting the symptom, it's
+carrying real timezone information end to end for the first time.
+
+### Decisions made this phase
+
+**The demo seed script re-runs the production `generate_report()` /
+`crud` pipeline rather than inserting rows directly.** A seeding path that
+diverges from the real upload path is a second thing that can drift out
+of sync and a second thing that can lie to a demo audience about what the
+product does. The only difference from a real upload is the source of the
+bytes (local sample files instead of a browser `POST`) and the wipe step
+first, both of which are honestly `make demo`-specific behavior, not a
+different analysis path.
+
+**Offline verification uses `docker run --network none` against the built
+image, not a code-review claim.** `enable_network_enrichment=False` being
+the default in every API code path is necessary but not sufficient
+evidence -- it only proves intent, not that some other dependency
+(a library doing its own DNS lookup, a stray `requests` call) couldn't
+still reach the network. Removing the network device entirely and getting
+a correct, complete report is the strongest available proof and costs
+nothing to keep re-running.

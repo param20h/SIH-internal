@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, LargeBinary, String
+from sqlalchemy import DateTime, ForeignKey, LargeBinary, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -38,7 +38,7 @@ class Analysis(Base):
     from_display_name: Mapped[str | None] = mapped_column(String(512), nullable=True)
     from_address: Mapped[str | None] = mapped_column(String(320), nullable=True, index=True)
     subject: Mapped[str | None] = mapped_column(String(998), nullable=True)
-    message_date: Mapped[datetime | None] = mapped_column(nullable=True)
+    message_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     spf_result: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
     dkim_result: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
@@ -76,7 +76,9 @@ class Analysis(Base):
     # a human writes this, so it's simply persisted and returned as-is.
     analyst_notes: Mapped[str | None] = mapped_column(String(4096), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
 
     hops: Mapped[list["Hop"]] = relationship(
         back_populates="analysis", cascade="all, delete-orphan", order_by="Hop.sequence"
@@ -100,7 +102,7 @@ class Hop(Base):
     by_host: Mapped[str | None] = mapped_column(String(512), nullable=True)
     protocol: Mapped[str | None] = mapped_column(String(64), nullable=True)
     timestamp_raw: Mapped[str | None] = mapped_column(String(256), nullable=True)
-    timestamp: Mapped[datetime | None] = mapped_column(nullable=True)
+    timestamp: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     parse_confidence: Mapped[float] = mapped_column(default=0.0)
 
     asn: Mapped[int | None] = mapped_column(nullable=True)

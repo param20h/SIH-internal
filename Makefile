@@ -1,4 +1,4 @@
-.PHONY: up down build test lint typecheck logs migrate makemigration
+.PHONY: up down build test lint typecheck logs migrate makemigration demo
 
 up:
 	docker compose up --build
@@ -23,6 +23,9 @@ migrate:
 
 makemigration:
 	docker compose run --rm api alembic revision --autogenerate -m "$(m)"
+
+demo:
+	docker compose run --rm api python -m app.scripts.seed_demo
 
 logs:
 	docker compose logs -f

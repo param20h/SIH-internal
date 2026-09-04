@@ -78,7 +78,7 @@ plugins = ["pydantic.mypy"]
 exclude = ["tests/"]
 
 [[tool.mypy.overrides]]
-module = ["geoip2.*", "spf.*", "dkim.*", "checkdmarc.*", "extract_msg.*", "celery.*", "onnxruntime.*"]
+module = ["geoip2.*", "spf.*", "dkim.*", "checkdmarc.*", "extract_msg.*", "celery.*", "onnxruntime.*", "reportlab.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

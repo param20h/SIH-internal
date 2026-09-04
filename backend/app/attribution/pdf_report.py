@@ -17,6 +17,7 @@ geolocation data (the common case without a licensed GeoLite2 database),
 that section says so plainly instead of rendering an empty box.
 """
 
+import itertools
 from io import BytesIO
 
 from reportlab.lib import colors
@@ -206,8 +207,8 @@ def _map_snapshot_section(report: ForensicReport, styles: dict) -> list:  # type
         y = 20 + (lat - lat_min) / lat_span * (height - 40)
         return x, y
 
-    points = [project(h.longitude, h.latitude) for h in geo_hops if h.longitude is not None and h.latitude is not None]  # type: ignore[arg-type]
-    for (x1, y1), (x2, y2) in zip(points, points[1:], strict=False):
+    points = [project(h.longitude, h.latitude) for h in geo_hops if h.longitude is not None and h.latitude is not None]
+    for (x1, y1), (x2, y2) in itertools.pairwise(points):
         drawing.add(Line(x1, y1, x2, y2, strokeColor=colors.HexColor("#38bdf8"), strokeWidth=1.5))
     for hop, (x, y) in zip(geo_hops, points, strict=False):
         color = colors.HexColor("#dc2626") if hop.is_bogon else colors.HexColor("#38bdf8")

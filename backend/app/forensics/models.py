@@ -17,9 +17,9 @@ from app.forensics.rdap import DomainIntel
 __all__ = [
     "AiSignals",
     "Anomaly",
-    "AttachmentInfo",
     "AnomalySeverity",
     "AnomalyType",
+    "AttachmentInfo",
     "AttributionConfidence",
     "AuthMechanism",
     "AuthResult",
