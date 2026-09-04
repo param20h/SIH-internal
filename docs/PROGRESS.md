@@ -14,7 +14,7 @@ Status at a glance:
 |---|---|---|---|
 | 0 | Foundation | done | `505cb1b` |
 | 1 | Deterministic forensics engine | done | `efcf26b` |
-| 2 | API + persistence | done | `<pending>` |
+| 2 | API + persistence | done | `a5bb0d0` |
 | 3 | Frontend | not started | — |
 | 4 | AI detection layer | not started | — |
 | 5 | Attribution & evidence export | not started | — |
@@ -120,7 +120,7 @@ tests no longer requires an image rebuild to pick them up.
 
 ## Phase 2 — API + persistence
 
-**Commit:** `<pending>`
+**Commit:** `a5bb0d0`
 
 Added the REST API and Postgres persistence layer:
 
