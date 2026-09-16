@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     app_name: str = "TVA - Threat Variance Authority"
     environment: str = "development"
     api_prefix: str = "/api/v1"
+    cors_origins: list[str] = ["*"]
 
     database_url: str = "postgresql+psycopg://tva:tva@localhost:5432/tva"
     redis_url: str = "redis://localhost:6379/0"
