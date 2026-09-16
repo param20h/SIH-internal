@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY pyproject.toml ./
 COPY app ./app
+COPY data /data
 
 RUN pip install --no-cache-dir -e ".[dev]"
 

@@ -33,7 +33,7 @@ def _check_redis() -> ComponentHealth:
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     settings = get_settings()
-    components = [_check_database(), _check_redis()]
+    components = [_check_database()]  # Removed Redis since Celery is bypassed for the demo
     overall = "ok" if all(c.status == "ok" for c in components) else "degraded"
     return HealthResponse(
         status=overall,

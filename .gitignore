@@ -23,7 +23,7 @@ dist/
 .DS_Store
 
 # Data (GeoLite2 binary, large sample outputs)
-data/geoip/*.mmdb
+# data/geoip/*.mmdb
 data/exports/
 
 # ML: downloaded training data and trained model artifacts are large and
