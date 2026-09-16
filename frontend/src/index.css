@@ -2,39 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-  --background: 222 47% 6%;
-  --foreground: 210 20% 96%;
-  --card: 222 40% 10%;
-  --muted: 222 32% 14%;
-  --muted-foreground: 215 16% 65%;
-  --border: 217 30% 20%;
-  --accent: 199 89% 58%;
-  --danger: 0 84% 60%;
-  --warning: 38 92% 55%;
-  --safe: 142 71% 45%;
-  --ring: 199 89% 58%;
+  --canvas-deep: #09090b;
+  --pure-surface: #18181b;
+  --clinical-white: #fafafa;
+  --muted-steel: #a1a1aa;
+  --whisper-border: rgba(255, 255, 255, 0.1);
+  --technical-cyan: #06b6d4;
+  --forensic-red: #ef4444;
+  --forensic-amber: #f59e0b;
+  --forensic-green: #10b981;
 }
 
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--whisper-border);
 }
 
 body {
   margin: 0;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  background: var(--canvas-deep);
+  color: var(--clinical-white);
+  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 :focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 2px solid var(--technical-cyan);
   outline-offset: 2px;
 }
 
@@ -46,12 +42,16 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: var(--pure-surface);
+  border: 1px solid var(--whisper-border);
   border-radius: 9999px;
 }
 
-/* Relay-path map: an animated dash gives the connecting lines a sense of
-   mail actually moving hop-to-hop, rather than a static diagram. */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-steel);
+}
+
+/* Relay-path map animation */
 @keyframes relay-flow {
   to {
     stroke-dashoffset: -16;
@@ -64,4 +64,30 @@ body {
 }
 .relay-line-anomalous {
   animation-duration: 0.6s;
+}
+
+.mono-data {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.label-md {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Spring-like transition for all interactive components */
+.transition-spring {
+  transition-property: transform, opacity, background-color, border-color, box-shadow;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.active-spring:active {
+  transform: translateY(1px);
 }

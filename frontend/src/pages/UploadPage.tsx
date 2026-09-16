@@ -51,87 +51,92 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Analyze an email</h1>
-        <p className="mt-2 text-muted-foreground">
-          Upload a raw <code className="rounded bg-muted px-1 py-0.5 text-xs">.eml</code> or{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">.msg</code> file, or paste the raw
-          source directly. Everything runs against the deterministic forensics engine offline.
+    <div className="mx-auto max-w-4xl px-4 py-16">
+      <div className="mb-12">
+        <h1 className="text-4xl font-semibold tracking-tight text-clinical-white">Telemetry Intake</h1>
+        <p className="mt-4 text-muted-steel max-w-2xl text-lg">
+          Initialize a new forensic pipeline. Upload a raw <code className="mono-data bg-surface-pure px-2 py-0.5 rounded border border-whisper-border">.eml</code> or{" "}
+          <code className="mono-data bg-surface-pure px-2 py-0.5 rounded border border-whisper-border">.msg</code> file, or paste the raw
+          source directly. The deterministic forensics engine runs strictly offline.
         </p>
       </div>
 
-      <Card>
-        <CardHeader
-          title={mode === "upload" ? "Upload files" : "Paste raw email source"}
-          eyebrow="New Nexus Event"
-          action={
-            <div className="flex gap-1 rounded-lg border border-border bg-muted p-1" role="tablist">
-              <button
-                role="tab"
-                aria-selected={mode === "upload"}
-                onClick={() => setMode("upload")}
-                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                  mode === "upload" ? "bg-accent text-background" : "text-muted-foreground"
-                }`}
-              >
-                Upload
-              </button>
-              <button
-                role="tab"
-                aria-selected={mode === "paste"}
-                onClick={() => setMode("paste")}
-                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                  mode === "paste" ? "bg-accent text-background" : "text-muted-foreground"
-                }`}
-              >
-                Paste headers
-              </button>
-            </div>
-          }
-        />
-        <CardBody>
+      <div className="border border-whisper-border bg-surface-pure rounded-xl overflow-hidden shadow-whisper-drop transition-spring">
+        <div className="border-b border-whisper-border p-4 bg-canvas-deep flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 rounded-full bg-technical-cyan animate-pulse" />
+            <span className="label-md text-muted-steel uppercase tracking-widest">Intake Vector</span>
+          </div>
+          <div className="flex gap-2" role="tablist">
+            <button
+              role="tab"
+              aria-selected={mode === "upload"}
+              onClick={() => setMode("upload")}
+              className={`label-md px-4 py-2 rounded-md transition-spring ${
+                mode === "upload" 
+                  ? "bg-technical-cyan/10 text-technical-cyan border border-technical-cyan/30" 
+                  : "text-muted-steel hover:bg-canvas-deep border border-transparent"
+              }`}
+            >
+              File Drop
+            </button>
+            <button
+              role="tab"
+              aria-selected={mode === "paste"}
+              onClick={() => setMode("paste")}
+              className={`label-md px-4 py-2 rounded-md transition-spring ${
+                mode === "paste" 
+                  ? "bg-technical-cyan/10 text-technical-cyan border border-technical-cyan/30" 
+                  : "text-muted-steel hover:bg-canvas-deep border border-transparent"
+              }`}
+            >
+              Raw Input
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-8">
           {mode === "upload" ? (
             <UploadDropzone onFiles={handleFiles} disabled={isPending} />
           ) : (
-            <div className="flex flex-col gap-3">
-              <label htmlFor="raw-headers" className="text-sm text-muted-foreground">
-                Paste the full raw email source (headers plus body). This is treated exactly like an
-                uploaded <code>.eml</code> file.
+            <div className="flex flex-col gap-4">
+              <label htmlFor="raw-headers" className="text-sm text-muted-steel">
+                Raw source data (headers + payload). Parsed exactly as standard telemetry.
               </label>
               <textarea
                 id="raw-headers"
                 value={pasted}
                 onChange={(e) => setPasted(e.target.value)}
                 disabled={isPending}
-                rows={14}
+                rows={16}
                 spellCheck={false}
-                placeholder={"Received: from mail.example.test ...\nFrom: sender@example.test\nSubject: ...\n\nbody..."}
-                className="w-full rounded-lg border border-border bg-background p-3 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:border-accent"
+                placeholder={"Received: from mail.example.test ...\nFrom: sender@example.test\nSubject: ...\n\n[Payload...]"}
+                className="w-full rounded-lg border border-whisper-border bg-canvas-deep p-4 mono-data text-muted-steel focus:border-technical-cyan focus:ring-1 focus:ring-technical-cyan transition-spring outline-none resize-y"
               />
-              <div>
-                <Button onClick={handlePasteSubmit} disabled={isPending}>
-                  {isPending && <Spinner className="h-4 w-4" />}
-                  Analyze pasted source
+              <div className="flex justify-end pt-2">
+                <Button onClick={handlePasteSubmit} disabled={isPending} className="active-spring bg-technical-cyan text-canvas-deep hover:bg-technical-cyan/90">
+                  {isPending && <Spinner className="h-4 w-4 mr-2" />}
+                  Execute Analysis
                 </Button>
               </div>
             </div>
           )}
 
           {isPending && mode === "upload" && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <div className="mt-6 flex items-center justify-center gap-3 text-sm text-technical-cyan mono-data">
               <Spinner className="h-4 w-4" />
-              Running the deterministic forensics pipeline…
+              Initializing deterministic forensics pipeline...
             </div>
           )}
 
           {error && (
-            <p role="alert" className="mt-4 rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
-              {error}
-            </p>
+            <div role="alert" className="mt-6 rounded-lg border border-forensic-red/30 bg-forensic-red/10 p-4 flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-forensic-red" />
+              <p className="text-sm text-forensic-red mono-data">{error}</p>
+            </div>
           )}
-        </CardBody>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

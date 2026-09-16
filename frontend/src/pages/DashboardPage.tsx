@@ -16,31 +16,28 @@ import {
 import { fetchStats, listAnalyses } from "../lib/api";
 import { formatRelativeTime } from "../lib/utils";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { Spinner } from "../components/ui/Spinner";
 
 const VERDICT_COLORS: Record<string, string> = {
-  clean: "hsl(142 71% 45%)",
-  suspicious: "hsl(38 92% 55%)",
-  malicious: "hsl(0 84% 60%)",
+  clean: "#10B981", // forensic-green
+  suspicious: "#F59E0B", // forensic-amber
+  malicious: "#EF4444", // forensic-red
 };
 
 const verdictTone: Record<string, BadgeTone> = { clean: "safe", suspicious: "warning", malicious: "danger" };
 
-function KpiCard({ label, value, tone }: { label: string; value: number | string; tone?: BadgeTone }) {
+function KpiPanel({ label, value, tone }: { label: string; value: number | string; tone?: BadgeTone }) {
   return (
-    <Card>
-      <CardBody>
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p
-          className={`mt-1 text-3xl font-bold ${
-            tone === "danger" ? "text-danger" : tone === "warning" ? "text-warning" : "text-foreground"
-          }`}
-        >
-          {value}
-        </p>
-      </CardBody>
-    </Card>
+    <div className="border border-whisper-border bg-pure-surface rounded-lg p-5 shadow-whisper-drop transition-spring hover:border-technical-cyan/30">
+      <p className="label-md text-muted-steel">{label}</p>
+      <p
+        className={`mt-2 text-3xl font-semibold tracking-tight mono-data ${
+          tone === "danger" ? "text-forensic-red" : tone === "warning" ? "text-forensic-amber" : "text-clinical-white"
+        }`}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -58,8 +55,8 @@ export default function DashboardPage() {
 
   if (isLoading || !stats) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center gap-2 text-muted-foreground">
-        <Spinner /> Loading dashboard…
+      <div className="flex min-h-[60vh] items-center justify-center gap-3 text-technical-cyan mono-data">
+        <Spinner /> Initializing telemetry dashboard...
       </div>
     );
   }
@@ -76,21 +73,25 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-      <p className="mb-6 text-sm text-muted-foreground">Aggregate stats across every analyzed email.</p>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <KpiCard label="Total analyses" value={stats.total_analyses} />
-        <KpiCard label="Malicious" value={stats.verdict_breakdown.malicious || 0} tone="danger" />
-        <KpiCard label="Suspicious" value={stats.verdict_breakdown.suspicious || 0} tone="warning" />
-        <KpiCard label="Last 24h" value={stats.analyses_last_24h} />
+    <div className="mx-auto max-w-6xl px-4 py-12">
+      <div className="mb-10">
+        <h1 className="text-3xl font-semibold text-clinical-white">Global Telemetry</h1>
+        <p className="mt-2 text-sm text-muted-steel">Aggregate statistics across the forensic pipeline.</p>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader title="Verdict breakdown" />
-          <CardBody>
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        <KpiPanel label="Total analyses" value={stats.total_analyses} />
+        <KpiPanel label="Malicious" value={stats.verdict_breakdown.malicious || 0} tone="danger" />
+        <KpiPanel label="Suspicious" value={stats.verdict_breakdown.suspicious || 0} tone="warning" />
+        <KpiPanel label="Last 24h" value={stats.analyses_last_24h} />
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="border border-whisper-border bg-pure-surface rounded-xl overflow-hidden shadow-whisper-drop">
+          <div className="border-b border-whisper-border p-4 bg-canvas-deep">
+            <h3 className="label-md text-clinical-white">Verdict Distribution</h3>
+          </div>
+          <div className="p-6">
             {verdictData.length === 0 ? (
               <EmptyChart />
             ) : (
@@ -100,147 +101,168 @@ export default function DashboardPage() {
                     data={verdictData}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={50}
-                    outerRadius={80}
+                    innerRadius={60}
+                    outerRadius={90}
                     isAnimationActive={false}
+                    stroke="none"
                   >
                     {verdictData.map((entry) => (
-                      <Cell key={entry.name} fill={VERDICT_COLORS[entry.name] ?? "hsl(var(--muted))"} />
+                      <Cell key={entry.name} fill={VERDICT_COLORS[entry.name] ?? "#A1A1AA"} />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontSize: 12,
+                      background: "#18181B",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      color: "#FAFAFA",
+                      fontFamily: "JetBrains Mono"
                     }}
+                    itemStyle={{ color: "#FAFAFA" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             )}
-            <div className="mt-2 flex justify-center gap-4 text-xs">
+            <div className="mt-4 flex justify-center gap-6 text-xs mono-data">
               {verdictData.map((entry) => (
-                <span key={entry.name} className="flex items-center gap-1.5 text-muted-foreground">
+                <span key={entry.name} className="flex items-center gap-2 text-muted-steel">
                   <span
                     className="h-2 w-2 rounded-full"
                     style={{ background: VERDICT_COLORS[entry.name] }}
                   />
-                  {entry.name} ({entry.value})
+                  {entry.name.toUpperCase()} ({entry.value})
                 </span>
               ))}
             </div>
-          </CardBody>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader title="Authentication failures" />
-          <CardBody>
+        <div className="border border-whisper-border bg-pure-surface rounded-xl overflow-hidden shadow-whisper-drop">
+          <div className="border-b border-whisper-border p-4 bg-canvas-deep">
+            <h3 className="label-md text-clinical-white">Authentication Failures</h3>
+          </div>
+          <div className="p-6">
             {authData.every((d) => d.value === 0) ? (
               <EmptyChart />
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={authData} layout="vertical" margin={{ left: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                  <XAxis type="number" allowDecimals={false} stroke="#A1A1AA" fontSize={11} fontFamily="JetBrains Mono" />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
+                    stroke="#A1A1AA"
+                    fontSize={11}
+                    fontFamily="JetBrains Mono"
                     width={80}
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontSize: 12,
+                      background: "#18181B",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      fontFamily: "JetBrains Mono",
+                      color: "#FAFAFA"
                     }}
+                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                   />
                   <Bar
                     dataKey="value"
-                    fill="hsl(var(--danger))"
+                    fill="#EF4444"
                     radius={[0, 4, 4, 0]}
                     isAnimationActive={false}
                   />
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </CardBody>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="lg:col-span-2">
-          <CardHeader title="Top anomaly types" />
-          <CardBody>
+        <div className="border border-whisper-border bg-pure-surface rounded-xl overflow-hidden shadow-whisper-drop lg:col-span-2">
+          <div className="border-b border-whisper-border p-4 bg-canvas-deep">
+            <h3 className="label-md text-clinical-white">Anomaly Signature Types</h3>
+          </div>
+          <div className="p-6">
             {anomalyTypeData.length === 0 ? (
               <EmptyChart />
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={anomalyTypeData} margin={{ bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis
                     dataKey="name"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={11}
-                    angle={-30}
+                    stroke="#A1A1AA"
+                    fontSize={10}
+                    fontFamily="JetBrains Mono"
+                    angle={-25}
                     textAnchor="end"
                     interval={0}
                   />
-                  <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <YAxis allowDecimals={false} stroke="#A1A1AA" fontSize={11} fontFamily="JetBrains Mono" />
                   <Tooltip
                     contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontSize: 12,
+                      background: "#18181B",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      fontFamily: "JetBrains Mono",
+                      color: "#FAFAFA"
                     }}
+                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                   />
                   <Bar
                     dataKey="value"
-                    fill="hsl(var(--accent))"
+                    fill="#06B6D4"
                     radius={[4, 4, 0, 0]}
                     isAnimationActive={false}
                   />
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </CardBody>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <Card className="mt-6">
-        <CardHeader title="Recent Nexus Events" action={<Link to="/analyses" className="text-xs text-accent hover:underline">View all →</Link>} />
-        <div className="divide-y divide-border">
+      <div className="mt-8 border border-whisper-border bg-pure-surface rounded-xl overflow-hidden shadow-whisper-drop">
+        <div className="border-b border-whisper-border p-4 bg-canvas-deep flex justify-between items-center">
+          <h3 className="label-md text-clinical-white">Recent Intake Buffer</h3>
+          <Link to="/analyses" className="label-md text-technical-cyan hover:text-technical-cyan/80 transition-colors">
+            View All Register →
+          </Link>
+        </div>
+        <div className="divide-y divide-whisper-border">
           {recent?.items.length === 0 && (
-            <p className="p-4 text-sm text-muted-foreground">Nothing analyzed yet.</p>
+            <p className="p-6 text-sm text-muted-steel mono-data">Buffer empty. No recent intakes.</p>
           )}
           {recent?.items.map((item) => (
             <Link
               key={item.id}
               to={`/analyses/${item.id}`}
-              className="flex items-center justify-between gap-4 p-4 hover:bg-muted/30"
+              className="flex items-center justify-between gap-4 p-5 hover:bg-canvas-deep/50 transition-spring group"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm text-foreground">{item.subject || "(no subject)"}</p>
-                <p className="truncate text-xs text-muted-foreground">{item.from_address}</p>
+                <p className="truncate text-sm font-medium text-clinical-white group-hover:text-technical-cyan transition-colors">{item.subject || "(NO SUBJECT)"}</p>
+                <p className="truncate mt-1 text-xs text-muted-steel mono-data">{item.from_address}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <Badge tone={verdictTone[item.verdict]}>{item.verdict}</Badge>
-                <span className="text-xs text-muted-foreground">{formatRelativeTime(item.created_at)}</span>
+              <div className="flex shrink-0 items-center gap-4">
+                <Badge tone={verdictTone[item.verdict]}>{item.verdict.toUpperCase()}</Badge>
+                <span className="text-xs text-muted-steel mono-data w-24 text-right">{formatRelativeTime(item.created_at)}</span>
               </div>
             </Link>
           ))}
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
 
 function EmptyChart() {
   return (
-    <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
-      No data yet
+    <div className="flex h-[200px] items-center justify-center text-sm text-muted-steel mono-data">
+      NO TELEMETRY DATA
     </div>
   );
 }
