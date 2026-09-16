@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { uploadAnalysis, uploadBatch } from "../lib/api";
 import { UploadDropzone } from "../components/upload/UploadDropzone";
 import { Button } from "../components/ui/Button";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
+
 import { Spinner } from "../components/ui/Spinner";
 
 type Mode = "upload" | "paste";
