@@ -5,6 +5,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
+  --canvas-deep: #ffffff;
+  --pure-surface: #f4f4f5;
+  --clinical-white: #09090b;
+  --muted-steel: #71717a;
+  --whisper-border: rgba(0, 0, 0, 0.1);
+  --technical-cyan: #0891b2;
+  --forensic-red: #ef4444;
+  --forensic-amber: #f59e0b;
+  --forensic-green: #10b981;
+}
+
+.dark {
   --canvas-deep: #09090b;
   --pure-surface: #18181b;
   --clinical-white: #fafafa;
