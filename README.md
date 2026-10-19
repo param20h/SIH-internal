@@ -3,7 +3,7 @@
 _For All Mail. Always._
 
 AI-powered email threat detection, geolocation and forensic intelligence
-platform. Built for SIH26106 (AICTE — Cyber Security theme). TVA ingests an
+platform. TVA ingests an
 `.eml`/`.msg` file and returns two things: an explainable verdict, and a
 forensic dossier tracing where the message actually came from.
 
@@ -148,7 +148,7 @@ signals — from a container with zero network access, not just zero
 
 ## Limitations
 
-This is a hackathon build, not a hardened production system. Specific,
+This is a prototype build, not a hardened production system. Specific,
 honest gaps rather than a generic disclaimer:
 
 - **SPF/DKIM/DMARC read the `Authentication-Results` header, not a live
